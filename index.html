@@ -7,518 +7,598 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
   <script>
-tailwind.config={theme:{extend:{colors:{g:{50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d'}},fontFamily:{vn:['"Be Vietnam Pro"','sans-serif']}}}}
-</script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { main: ['Be Vietnam Pro', 'sans-serif'] },
+          colors: {
+            leaf: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 500:'#22c55e', 600:'#16a34a', 700:'#15803d', 800:'#166534', 900:'#14532d' }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:'Be Vietnam Pro',sans-serif}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-thumb{background:#86efac;border-radius:3px}
-.tab-active{background:#16a34a;color:#fff;box-shadow:0 2px 8px rgba(22,163,74,.3)}
-.fade-in{animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.card-hover{transition:all .2s}
-.card-hover:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(22,163,74,.15)}
-.dropdown-item:hover{background:#f0fdf4}
-@keyframes spin{to{transform:rotate(360deg)}}
-.spinner{animation:spin .8s linear infinite;border:3px solid #dcfce7;border-top-color:#16a34a;border-radius:50%;width:32px;height:32px}
-@media print{.no-print{display:none!important}}
-</style>
+    * { font-family: 'Be Vietnam Pro', sans-serif; }
+    .tab-active { background: #16a34a; color: white; }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .card-hover { transition: all 0.2s; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(22,163,74,0.15); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #86efac; border-radius: 3px; }
+    #export-canvas { position: fixed; left: -9999px; top: 0; }
+  </style>
   <style>body { box-sizing: border-box; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
- <body class="h-full bg-gray-50">
-  <div id="app" class="h-full w-full overflow-auto" style="background:linear-gradient(135deg,#f0fdf4 0%,#fff 50%,#dcfce7 100%)"><!-- Loading -->
-   <div id="loading" class="flex flex-col items-center justify-center" style="height:100%">
-    <div class="spinner"></div>
-    <p class="mt-4 text-g-700 font-medium">Đang tải dữ liệu...</p>
-   </div><!-- Main Content -->
-   <div id="main" class="hidden w-full max-w-4xl mx-auto px-3 pb-8" style="padding-top:12px"><!-- Header -->
-    <header class="text-center mb-4">
-     <div class="flex items-center justify-center gap-2 mb-1"><a href="https://tkbnkhoahung.github.io/tkbnk2526hs/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-sm text-g-600 hover:text-g-800 no-print" title="Trang chủ"> <i data-lucide="home" style="width:16px;height:16px"></i> </a>
-      <h1 id="mainTitle" class="text-xl md:text-2xl font-800 text-g-800">Thời Khóa Biểu Tự Chọn Lớp 12</h1>
-     </div>
-     <p id="applyDate" class="text-sm text-g-600 font-medium">Áp dụng từ ngày 4/5/2026</p>
-    </header><!-- Stats -->
-    <div id="stats" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4"></div><!-- Tabs -->
-    <div class="flex gap-1 mb-3 overflow-x-auto no-print" id="tabBar"><button onclick="switchTab('student')" data-tab="student" class="tab-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-600 text-g-700 bg-white border border-g-200 whitespace-nowrap transition-all"> <i data-lucide="user" style="width:14px;height:14px"></i> Học sinh </button> <button onclick="switchTab('class')" data-tab="class" class="tab-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-600 text-g-700 bg-white border border-g-200 whitespace-nowrap transition-all"> <i data-lucide="book-open" style="width:14px;height:14px"></i> Mã lớp </button> <button onclick="switchTab('room')" data-tab="room" class="tab-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-600 text-g-700 bg-white border border-g-200 whitespace-nowrap transition-all"> <i data-lucide="map-pin" style="width:14px;height:14px"></i> Phòng </button> <button onclick="switchTab('teacher')" data-tab="teacher" class="tab-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-600 text-g-700 bg-white border border-g-200 whitespace-nowrap transition-all"> <i data-lucide="briefcase" style="width:14px;height:14px"></i> Giáo viên </button>
-    </div><!-- Search + Dropdown -->
-    <div class="flex gap-2 mb-3 no-print relative">
-     <div class="relative flex-1"><i data-lucide="search" style="width:16px;height:16px" class="absolute left-3 top-1/2 -translate-y-1/2 text-g-400"></i> <input id="searchBox" type="text" placeholder="Tìm kiếm..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-g-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-g-400 focus:border-transparent" oninput="onSearch()" onfocus="showSuggestions()">
-      <div id="suggestions" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-g-200 rounded-lg shadow-lg max-h-48 overflow-auto z-50"></div>
-     </div><select id="dropdownSelect" onchange="onDropdownChange()" class="px-3 py-2 rounded-lg border border-g-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-g-400 min-w-[140px] max-w-[200px]"></select> <button onclick="clearSearch()" class="px-3 py-2 rounded-lg border border-g-200 bg-white text-g-600 hover:bg-g-50 text-sm" title="Xóa tìm kiếm"> <i data-lucide="x" style="width:16px;height:16px"></i> </button>
-    </div><!-- Results -->
-    <div id="results" class="space-y-3 fade-in"></div><!-- Export Phone Wallpaper -->
-    <div class="mt-6 flex flex-wrap gap-2 justify-center no-print"><button onclick="exportWallpaper()" class="flex items-center gap-2 px-4 py-2 bg-g-600 text-white rounded-lg text-sm font-600 hover:bg-g-700 transition-all"> <i data-lucide="image" style="width:16px;height:16px"></i> Xuất hình nền điện thoại </button> <button onclick="exportCSV()" class="flex items-center gap-2 px-4 py-2 bg-g-700 text-white rounded-lg text-sm font-600 hover:bg-g-800 transition-all"> <i data-lucide="download" style="width:16px;height:16px"></i> Xuất CSV/Excel </button>
+ <body class="h-full bg-leaf-50 text-gray-800">
+  <div id="app" class="h-full w-full overflow-auto">
+   <!-- Header -->
+   <header class="bg-white border-b border-leaf-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+     <div class="flex items-center gap-2">
+      <a href="https://tkbnkhoahung.github.io/tkbnk2526hs/" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-leaf-100 text-leaf-700 hover:bg-leaf-200 transition"> <i data-lucide="home" class="w-5 h-5"></i> </a>
+      <div>
+       <h1 id="page-title" class="text-lg font-bold text-leaf-800 leading-tight">Thời Khóa Biểu Tự Chọn Lớp 12</h1>
+       <p class="text-xs text-leaf-600">Áp dụng từ ngày 4/5/2026</p>
+      </div>
+     </div><button onclick="exportWallpaper()" class="flex items-center gap-1 px-3 py-2 bg-leaf-600 text-white rounded-lg text-sm font-medium hover:bg-leaf-700 transition"> <i data-lucide="image" class="w-4 h-4"></i> <span class="hidden sm:inline">Xuất hình</span> </button>
     </div>
-   </div><!-- Wallpaper Canvas (hidden) -->
-   <canvas id="wallpaperCanvas" class="hidden"></canvas>
+   </header><!-- Stats -->
+   <div id="stats-section" class="max-w-5xl mx-auto px-4 py-3">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+     <div class="bg-white rounded-xl p-3 border border-leaf-200 text-center">
+      <div class="text-2xl font-bold text-leaf-700" id="stat-students">
+       -
+      </div>
+      <div class="text-xs text-gray-500">
+       Học sinh
+      </div>
+     </div>
+     <div class="bg-white rounded-xl p-3 border border-leaf-200 text-center">
+      <div class="text-2xl font-bold text-leaf-700" id="stat-classes">
+       -
+      </div>
+      <div class="text-xs text-gray-500">
+       Mã lớp
+      </div>
+     </div>
+     <div class="bg-white rounded-xl p-3 border border-leaf-200 text-center">
+      <div class="text-2xl font-bold text-leaf-700" id="stat-rooms">
+       -
+      </div>
+      <div class="text-xs text-gray-500">
+       Phòng
+      </div>
+     </div>
+     <div class="bg-white rounded-xl p-3 border border-leaf-200 text-center">
+      <div class="text-2xl font-bold text-leaf-700" id="stat-teachers">
+       -
+      </div>
+      <div class="text-xs text-gray-500">
+       Giáo viên
+      </div>
+     </div>
+    </div>
+   </div><!-- Tabs -->
+   <div class="max-w-5xl mx-auto px-4">
+    <div class="flex gap-1 bg-white rounded-xl p-1 border border-leaf-200 overflow-x-auto">
+     <button onclick="switchTab('student')" id="tab-student" class="tab-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap tab-active">Học sinh</button> <button onclick="switchTab('class')" id="tab-class" class="tab-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-gray-600 hover:bg-leaf-100">Mã lớp</button> <button onclick="switchTab('room')" id="tab-room" class="tab-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-gray-600 hover:bg-leaf-100">Phòng</button> <button onclick="switchTab('teacher')" id="tab-teacher" class="tab-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-gray-600 hover:bg-leaf-100">Giáo viên</button>
+    </div>
+   </div><!-- Search + Dropdown -->
+   <div class="max-w-5xl mx-auto px-4 py-3">
+    <div class="flex gap-2">
+     <div class="relative flex-1">
+      <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i> <input id="search-input" type="text" placeholder="Tìm kiếm..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-leaf-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-leaf-400 focus:border-transparent" oninput="onSearch(this.value)"> <button id="clear-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onclick="clearSearch()"> <i data-lucide="x" class="w-4 h-4"></i> </button> <!-- Suggestions -->
+      <div id="suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-leaf-200 rounded-xl shadow-lg max-h-60 overflow-auto z-40"></div>
+     </div><select id="dropdown-select" onchange="onDropdownChange(this.value)" class="px-3 py-2.5 rounded-xl border border-leaf-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-leaf-400 max-w-[180px]"> <option value="">Chọn...</option> </select>
+    </div>
+   </div><!-- Content -->
+   <div id="content-area" class="max-w-5xl mx-auto px-4 pb-6 fade-in">
+    <div id="loading" class="text-center py-12">
+     <div class="inline-block w-8 h-8 border-3 border-leaf-300 border-t-leaf-600 rounded-full animate-spin"></div>
+     <p class="mt-3 text-sm text-gray-500">Đang tải dữ liệu...</p>
+    </div>
+    <div id="results" class="hidden"></div>
+   </div><!-- Export CSV -->
+   <div class="max-w-5xl mx-auto px-4 pb-8">
+    <button onclick="exportCSV()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-leaf-200 rounded-xl text-sm font-medium text-leaf-700 hover:bg-leaf-50 transition"> <i data-lucide="download" class="w-4 h-4"></i> Xuất CSV/Excel toàn bộ thông tin </button>
+   </div>
   </div>
+  <canvas id="export-canvas" width="1080" height="1920"></canvas>
   <script>
-const SHEET_ID='14QJ8ALOZYFfLpuMsIaMRTzmMgvES8EZQsWSJeyqW160';
-const CSV_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+// Global state
+let allData = [];
+let currentTab = 'student';
+let students = [], classes = [], rooms = [], teachers = [];
 
-let allData=[];
-let currentTab='student';
-let students=new Set(),classes=new Set(),rooms=new Set(),teachers=new Set();
-let studentMap={},classMap={},roomMap={},teacherMap={};
+const SHEET_ID = '14QJ8ALOZYFfLpuMsIaMRTzmMgvES8EZQsWSJeyqW160';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-// Parse CSV
-function parseCSV(text){
-const lines=text.split('\n').filter(l=>l.trim());
-const result=[];
-for(let i=1;i<lines.length;i++){
-const cols=parseCSVLine(lines[i]);
-if(cols.length>=10&&cols[0].trim()){
-const realClass=cols[0].trim();
-const studentName=cols[1].trim();
-const sub1=cols[2].trim();
-const teacher1=cols[3].trim();
-const code1=cols[4].trim();
-const room1=cols[5].trim();
-const sub2=cols[6].trim();
-const teacher2=cols[7].trim();
-const code2=cols[8].trim();
-const room2=cols[9].trim();
-if(studentName){
-result.push({realClass,studentName,
-s1:{subject:sub1,teacher:teacher1,code:code1,room:room1},
-s2:{subject:sub2,teacher:teacher2,code:code2,room:room2}});
-}
-}
-}
-return result;
-}
+// Parse data
+async function fetchData() {
+  try {
+    const res = await fetch(SHEET_URL);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+    const rows = json.table.rows;
+    const cols = json.table.cols;
+    
+    // Skip header row (first row is column names)
+    allData = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r.c || !r.c[0]) continue;
+      const cells = r.c.map(c => c ? (c.v || '').toString().trim() : '');
+      if (!cells[0]) continue;
+      
+      // Parse: lớp thực, tên HS, môn1, GV1, mã lớp1, phòng1, môn2, GV2, mã lớp2, phòng2
+      const entry = {
+        realClass: cells[0] || '',
+        studentName: cells[1] || '',
+        subject1: cells[2] || '',
+        teacher1: cells[3] || '',
+        classCode1: cells[4] || '',
+        room1: cells[5] || '',
+        subject2: cells[6] || '',
+        teacher2: cells[7] || '',
+        classCode2: cells[8] || '',
+        room2: cells[9] || ''
+      };
+      if (entry.studentName) allData.push(entry);
+    }
 
-function parseCSVLine(line){
-const result=[];let current='';let inQuotes=false;
-for(let i=0;i<line.length;i++){
-const c=line[i];
-if(inQuotes){if(c==='"'){if(i+1<line.length&&line[i+1]==='"'){current+='"';i++}else{inQuotes=false}}else{current+=c}}
-else{if(c==='"'){inQuotes=true}else if(c===','){result.push(current);current=''}else{current+=c}}
-}
-result.push(current);
-return result;
-}
+    // Build indexes
+    const sSet = new Set(), cSet = new Set(), rSet = new Set(), tSet = new Set();
+    allData.forEach(d => {
+      sSet.add(d.studentName);
+      if (d.classCode1) cSet.add(d.classCode1);
+      if (d.classCode2) cSet.add(d.classCode2);
+      if (d.room1) rSet.add(d.room1);
+      if (d.room2) rSet.add(d.room2);
+      if (d.teacher1) tSet.add(d.teacher1);
+      if (d.teacher2) tSet.add(d.teacher2);
+    });
+    students = [...sSet].sort();
+    classes = [...cSet].sort();
+    rooms = [...rSet].sort();
+    teachers = [...tSet].sort();
 
-function buildIndexes(){
-students.clear();classes.clear();rooms.clear();teachers.clear();
-studentMap={};classMap={};roomMap={};teacherMap={};
-allData.forEach(d=>{
-students.add(d.studentName);
-if(!studentMap[d.studentName])studentMap[d.studentName]=[];
-studentMap[d.studentName].push(d);
-[d.s1,d.s2].forEach((s,idx)=>{
-const period=idx===0?'Tiết 1-2':'Tiết 3-4';
-if(s.code){
-classes.add(s.code);
-if(!classMap[s.code])classMap[s.code]=[];
-classMap[s.code].push({...d,period,slot:s});
-}
-if(s.room){
-rooms.add(s.room);
-if(!roomMap[s.room])roomMap[s.room]=[];
-roomMap[s.room].push({...d,period,slot:s});
-}
-if(s.teacher){
-teachers.add(s.teacher);
-if(!teacherMap[s.teacher])teacherMap[s.teacher]=[];
-teacherMap[s.teacher].push({...d,period,slot:s});
-}
-});
-});
-}
+    // Stats
+    document.getElementById('stat-students').textContent = students.length;
+    document.getElementById('stat-classes').textContent = classes.length;
+    document.getElementById('stat-rooms').textContent = rooms.length;
+    document.getElementById('stat-teachers').textContent = teachers.length;
 
-function renderStats(){
-const el=document.getElementById('stats');
-const items=[
-{icon:'users',label:'Học sinh',val:students.size,color:'bg-g-100 text-g-800'},
-{icon:'book-open',label:'Mã lớp',val:classes.size,color:'bg-emerald-100 text-emerald-800'},
-{icon:'map-pin',label:'Phòng',val:rooms.size,color:'bg-teal-100 text-teal-800'},
-{icon:'briefcase',label:'Giáo viên',val:teachers.size,color:'bg-green-100 text-green-800'}
-];
-el.innerHTML=items.map(i=>`<div class="${i.color} rounded-xl p-3 text-center card-hover">
-<div class="text-2xl font-800">${i.val}</div>
-<div class="text-xs font-500 mt-1 flex items-center justify-center gap-1"><i data-lucide="${i.icon}" style="width:12px;height:12px"></i>${i.label}</div>
-</div>`).join('');
-lucide.createIcons();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+    
+    populateDropdown();
+    // Show first item by default
+    if (students.length > 0) {
+      document.getElementById('dropdown-select').value = students[0];
+      showResult(students[0]);
+    }
+  } catch(e) {
+    document.getElementById('loading').innerHTML = `<p class="text-red-500 text-sm">Lỗi tải dữ liệu. Vui lòng thử lại.</p>`;
+    console.error(e);
+  }
 }
 
-function getListForTab(){
-const m={student:[...students].sort(),class:[...classes].sort(),room:[...rooms].sort(),teacher:[...teachers].sort()};
-return m[currentTab]||[];
+function populateDropdown() {
+  const sel = document.getElementById('dropdown-select');
+  let list = [];
+  if (currentTab === 'student') list = students;
+  else if (currentTab === 'class') list = classes;
+  else if (currentTab === 'room') list = rooms;
+  else list = teachers;
+  
+  sel.innerHTML = list.map(item => `<option value="${item}">${item}</option>`).join('');
+  if (list.length > 0) {
+    sel.value = list[0];
+    showResult(list[0]);
+  }
 }
 
-function populateDropdown(){
-const sel=document.getElementById('dropdownSelect');
-const list=getListForTab();
-sel.innerHTML=list.map(v=>`<option value="${v}">${v}</option>`).join('');
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('tab-active');
+    b.classList.add('text-gray-600', 'hover:bg-leaf-100');
+  });
+  const active = document.getElementById('tab-' + tab);
+  active.classList.add('tab-active');
+  active.classList.remove('text-gray-600', 'hover:bg-leaf-100');
+  
+  const placeholders = { student:'Tìm học sinh...', class:'Tìm mã lớp...', room:'Tìm phòng...', teacher:'Tìm giáo viên...' };
+  document.getElementById('search-input').placeholder = placeholders[tab];
+  document.getElementById('search-input').value = '';
+  document.getElementById('suggestions').classList.add('hidden');
+  document.getElementById('clear-btn').classList.add('hidden');
+  
+  populateDropdown();
 }
 
-function switchTab(tab){
-currentTab=tab;
-document.querySelectorAll('.tab-btn').forEach(b=>{
-b.classList.remove('tab-active');
-if(b.dataset.tab===tab)b.classList.add('tab-active');
-});
-document.getElementById('searchBox').value='';
-document.getElementById('suggestions').classList.add('hidden');
-populateDropdown();
-const sel=document.getElementById('dropdownSelect');
-if(sel.value)renderResult(sel.value);
-else document.getElementById('results').innerHTML='';
-const placeholders={student:'Tìm học sinh...',class:'Tìm mã lớp...',room:'Tìm phòng...',teacher:'Tìm giáo viên...'};
-document.getElementById('searchBox').placeholder=placeholders[tab]||'Tìm kiếm...';
+function onSearch(val) {
+  const sug = document.getElementById('suggestions');
+  const clearBtn = document.getElementById('clear-btn');
+  if (!val.trim()) {
+    sug.classList.add('hidden');
+    clearBtn.classList.add('hidden');
+    populateDropdown();
+    return;
+  }
+  clearBtn.classList.remove('hidden');
+  
+  let list = [];
+  if (currentTab === 'student') list = students;
+  else if (currentTab === 'class') list = classes;
+  else if (currentTab === 'room') list = rooms;
+  else list = teachers;
+  
+  const q = val.toLowerCase();
+  const matches = list.filter(i => i.toLowerCase().includes(q));
+  
+  if (matches.length === 0) {
+    sug.innerHTML = '<div class="px-4 py-3 text-sm text-gray-400">Không tìm thấy</div>';
+  } else {
+    sug.innerHTML = matches.slice(0, 20).map(m => 
+      `<div class="px-4 py-2.5 text-sm cursor-pointer hover:bg-leaf-50 transition" onclick="selectItem('${m.replace(/'/g, "\\'")}')">${m}</div>`
+    ).join('');
+  }
+  sug.classList.remove('hidden');
 }
 
-function onDropdownChange(){
-const val=document.getElementById('dropdownSelect').value;
-document.getElementById('searchBox').value='';
-document.getElementById('suggestions').classList.add('hidden');
-if(val)renderResult(val);
+function selectItem(val) {
+  document.getElementById('search-input').value = val;
+  document.getElementById('suggestions').classList.add('hidden');
+  document.getElementById('dropdown-select').value = val;
+  showResult(val);
 }
 
-function onSearch(){
-const q=document.getElementById('searchBox').value.trim().toLowerCase();
-showSuggestions();
-if(!q){
-const sel=document.getElementById('dropdownSelect');
-if(sel.value)renderResult(sel.value);
-return;
-}
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('suggestions').classList.add('hidden');
+  document.getElementById('clear-btn').classList.add('hidden');
+  populateDropdown();
 }
 
-function showSuggestions(){
-const q=document.getElementById('searchBox').value.trim().toLowerCase();
-const box=document.getElementById('suggestions');
-if(!q){box.classList.add('hidden');return;}
-const list=getListForTab().filter(v=>v.toLowerCase().includes(q));
-if(!list.length){box.classList.add('hidden');return;}
-box.innerHTML=list.slice(0,20).map(v=>`<div class="dropdown-item px-3 py-2 cursor-pointer text-sm" onclick="selectSuggestion('${v.replace(/'/g,"\\'")}')">${highlight(v,q)}</div>`).join('');
-box.classList.remove('hidden');
+function onDropdownChange(val) {
+  if (val) {
+    document.getElementById('search-input').value = '';
+    document.getElementById('suggestions').classList.add('hidden');
+    showResult(val);
+  }
 }
 
-function highlight(text,q){
-const idx=text.toLowerCase().indexOf(q);
-if(idx<0)return text;
-return text.slice(0,idx)+'<span class="bg-g-200 font-600 rounded px-0.5">'+text.slice(idx,idx+q.length)+'</span>'+text.slice(idx+q.length);
+function showResult(val) {
+  const results = document.getElementById('results');
+  let html = '';
+  
+  if (currentTab === 'student') {
+    const entries = allData.filter(d => d.studentName === val);
+    if (entries.length === 0) { results.innerHTML = '<p class="text-center text-gray-400 py-8">Không có dữ liệu</p>'; return; }
+    const e = entries[0];
+    html = `
+      <div class="fade-in">
+        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
+          <div class="bg-leaf-600 px-4 py-3">
+            <h2 class="text-white font-semibold text-lg">${e.studentName}</h2>
+            <p class="text-leaf-100 text-xs">Lớp ${e.realClass}</p>
+          </div>
+          <div class="p-4 space-y-3">
+            ${renderPeriod('Tiết 1-2', e.subject1, e.teacher1, e.classCode1, e.room1)}
+            ${renderPeriod('Tiết 3-4', e.subject2, e.teacher2, e.classCode2, e.room2)}
+          </div>
+        </div>
+      </div>`;
+  } else if (currentTab === 'class') {
+    const entries = allData.filter(d => d.classCode1 === val || d.classCode2 === val);
+    if (entries.length === 0) { results.innerHTML = '<p class="text-center text-gray-400 py-8">Không có dữ liệu</p>'; return; }
+    // Find teacher and room for this class code
+    let teacher = '', room = '', subject = '';
+    for (const e of entries) {
+      if (e.classCode1 === val) { teacher = e.teacher1; room = e.room1; subject = e.subject1; break; }
+      if (e.classCode2 === val) { teacher = e.teacher2; room = e.room2; subject = e.subject2; break; }
+    }
+    const studentList = entries.map(e => `${e.studentName} (${e.realClass})`);
+    html = `
+      <div class="fade-in">
+        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
+          <div class="bg-leaf-600 px-4 py-3">
+            <h2 class="text-white font-semibold text-lg">${val} - ${subject}</h2>
+            <p class="text-leaf-100 text-xs">GV: ${teacher} · Phòng: ${room}</p>
+          </div>
+          <div class="p-4">
+            <p class="text-xs text-gray-500 mb-2">${studentList.length} học sinh</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              ${studentList.map((s,i) => `<div class="text-sm px-3 py-1.5 bg-leaf-50 rounded-lg">${i+1}. ${s}</div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  } else if (currentTab === 'room') {
+    // Room: who teaches there, which period, how many students
+    const period1 = allData.filter(d => d.room1 === val);
+    const period2 = allData.filter(d => d.room2 === val);
+    html = `<div class="fade-in space-y-3">`;
+    if (period1.length > 0) {
+      const t = period1[0].teacher1;
+      const s = period1[0].subject1;
+      const cc = period1[0].classCode1;
+      html += `
+        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
+          <div class="bg-leaf-600 px-4 py-3">
+            <h2 class="text-white font-semibold">Phòng ${val} - Tiết 1-2</h2>
+          </div>
+          <div class="p-4">
+            <div class="flex items-center gap-3 text-sm">
+              <span class="px-2 py-1 bg-leaf-100 text-leaf-700 rounded-lg font-medium">${s}</span>
+              <span>GV: ${t}</span>
+              <span>Mã: ${cc}</span>
+              <span class="ml-auto text-gray-500">${period1.length} HS</span>
+            </div>
+          </div>
+        </div>`;
+    }
+    if (period2.length > 0) {
+      const t = period2[0].teacher2;
+      const s = period2[0].subject2;
+      const cc = period2[0].classCode2;
+      html += `
+        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
+          <div class="bg-leaf-600 px-4 py-3">
+            <h2 class="text-white font-semibold">Phòng ${val} - Tiết 3-4</h2>
+          </div>
+          <div class="p-4">
+            <div class="flex items-center gap-3 text-sm">
+              <span class="px-2 py-1 bg-leaf-100 text-leaf-700 rounded-lg font-medium">${s}</span>
+              <span>GV: ${t}</span>
+              <span>Mã: ${cc}</span>
+              <span class="ml-auto text-gray-500">${period2.length} HS</span>
+            </div>
+          </div>
+        </div>`;
+    }
+    html += `</div>`;
+  } else if (currentTab === 'teacher') {
+    const p1 = allData.filter(d => d.teacher1 === val);
+    const p2 = allData.filter(d => d.teacher2 === val);
+    html = `<div class="fade-in space-y-3">`;
+    if (p1.length > 0) {
+      const codes1 = [...new Set(p1.map(d => d.classCode1))];
+      html += `
+        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
+          <div class="bg-leaf-600 px-4 py-3">
+            <h2 class="text-white font-semibold">${val}</h2>
+            <p class="text-leaf-100 text-xs">Tiết 1-2</p>
+          </div>
+          <div class="p-4 space-y-2">
+            ${codes1.map(cc => {
+              const items = p1.filter(d => d.classCode1 === cc);
+              return `<div class="p-3 bg-leaf-50 rounded-xl">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-medium text-leaf-800">${cc} - ${items[0].subject1}</span>
+                  <span class="text-gray-500">Phòng ${items[0].room1} · ${items.length} HS</span>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+    if (p2.length > 0) {
+      const codes2 = [...new Set(p2.map(d => d.classCode2))];
+      html += `
+        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
+          <div class="bg-leaf-600 px-4 py-3">
+            <h2 class="text-white font-semibold">${val}</h2>
+            <p class="text-leaf-100 text-xs">Tiết 3-4</p>
+          </div>
+          <div class="p-4 space-y-2">
+            ${codes2.map(cc => {
+              const items = p2.filter(d => d.classCode2 === cc);
+              return `<div class="p-3 bg-leaf-50 rounded-xl">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-medium text-leaf-800">${cc} - ${items[0].subject2}</span>
+                  <span class="text-gray-500">Phòng ${items[0].room2} · ${items.length} HS</span>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+    html += `</div>`;
+  }
+  
+  results.innerHTML = html;
 }
 
-function selectSuggestion(val){
-document.getElementById('searchBox').value=val;
-document.getElementById('suggestions').classList.add('hidden');
-// sync dropdown
-const sel=document.getElementById('dropdownSelect');
-sel.value=val;
-renderResult(val);
+function renderPeriod(label, subject, teacher, classCode, room) {
+  if (!subject) return '';
+  return `
+    <div class="flex items-center gap-3 p-3 bg-leaf-50 rounded-xl">
+      <div class="w-16 text-center">
+        <div class="text-xs text-gray-500">${label}</div>
+        <div class="font-bold text-leaf-700 text-lg">${subject}</div>
+      </div>
+      <div class="h-8 w-px bg-leaf-200"></div>
+      <div class="flex-1 text-sm space-y-0.5">
+        <div class="font-medium text-gray-800">${teacher}</div>
+        <div class="text-gray-500">Mã: ${classCode} · Phòng: ${room}</div>
+      </div>
+    </div>`;
 }
 
-function clearSearch(){
-document.getElementById('searchBox').value='';
-document.getElementById('suggestions').classList.add('hidden');
-const sel=document.getElementById('dropdownSelect');
-if(sel.value)renderResult(sel.value);
+function exportWallpaper() {
+  const canvas = document.getElementById('export-canvas');
+  const ctx = canvas.getContext('2d');
+  const w = 1080, h = 1920;
+  
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, '#14532d');
+  grad.addColorStop(1, '#166534');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+  
+  // Get selected item
+  const sel = document.getElementById('dropdown-select').value;
+  if (!sel || currentTab !== 'student') {
+    // Just export current student from dropdown or first
+    const target = sel || (students.length > 0 ? students[0] : '');
+    if (!target) return;
+    drawStudentWallpaper(ctx, target, w, h);
+  } else {
+    drawStudentWallpaper(ctx, sel, w, h);
+  }
+  
+  // Download
+  const link = document.createElement('a');
+  link.download = `TKB_${sel || 'export'}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
 }
 
-function renderResult(val){
-const el=document.getElementById('results');
-el.innerHTML='';
-if(currentTab==='student')renderStudent(val,el);
-else if(currentTab==='class')renderClass(val,el);
-else if(currentTab==='room')renderRoom(val,el);
-else if(currentTab==='teacher')renderTeacher(val,el);
-el.classList.add('fade-in');
+function drawStudentWallpaper(ctx, name, w, h) {
+  const entries = allData.filter(d => d.studentName === name);
+  if (entries.length === 0) return;
+  const e = entries[0];
+  
+  // Title
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 48px Be Vietnam Pro, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('THỜI KHÓA BIỂU TỰ CHỌN', w/2, 200);
+  ctx.font = '32px Be Vietnam Pro, sans-serif';
+  ctx.fillStyle = '#86efac';
+  ctx.fillText('Áp dụng từ 4/5/2026', w/2, 260);
+  
+  // Student info
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 56px Be Vietnam Pro, sans-serif';
+  ctx.fillText(e.studentName, w/2, 400);
+  ctx.font = '36px Be Vietnam Pro, sans-serif';
+  ctx.fillStyle = '#bbf7d0';
+  ctx.fillText(`Lớp ${e.realClass}`, w/2, 460);
+  
+  // Period 1
+  let y = 580;
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  roundRect(ctx, 80, y, w-160, 280, 24);
+  ctx.fill();
+  
+  ctx.fillStyle = '#4ade80';
+  ctx.font = 'bold 32px Be Vietnam Pro, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('TIẾT 1-2', 130, y + 60);
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 44px Be Vietnam Pro, sans-serif';
+  ctx.fillText(e.subject1, 130, y + 120);
+  ctx.font = '30px Be Vietnam Pro, sans-serif';
+  ctx.fillStyle = '#dcfce7';
+  ctx.fillText(`GV: ${e.teacher1}`, 130, y + 175);
+  ctx.fillText(`Mã lớp: ${e.classCode1} · Phòng: ${e.room1}`, 130, y + 225);
+  
+  // Period 2
+  y = 920;
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  roundRect(ctx, 80, y, w-160, 280, 24);
+  ctx.fill();
+  
+  ctx.fillStyle = '#4ade80';
+  ctx.font = 'bold 32px Be Vietnam Pro, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('TIẾT 3-4', 130, y + 60);
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 44px Be Vietnam Pro, sans-serif';
+  ctx.fillText(e.subject2, 130, y + 120);
+  ctx.font = '30px Be Vietnam Pro, sans-serif';
+  ctx.fillStyle = '#dcfce7';
+  ctx.fillText(`GV: ${e.teacher2}`, 130, y + 175);
+  ctx.fillText(`Mã lớp: ${e.classCode2} · Phòng: ${e.room2}`, 130, y + 225);
+  
+  // Footer
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '24px Be Vietnam Pro, sans-serif';
+  ctx.fillText('tkbnkhoahung.github.io', w/2, h - 100);
 }
 
-function renderStudent(name,el){
-const records=studentMap[name];
-if(!records||!records.length){el.innerHTML=noResult();return;}
-const d=records[0];
-el.innerHTML=`
-<div class="bg-white rounded-2xl border border-g-200 overflow-hidden shadow-sm">
-<div class="bg-g-600 text-white px-4 py-3">
-<div class="font-700 text-lg">${d.studentName}</div>
-<div class="text-g-100 text-xs mt-0.5">Lớp ${d.realClass}</div>
-</div>
-<div class="divide-y divide-g-100">
-${slotCard('Tiết 1-2',d.s1)}
-${slotCard('Tiết 3-4',d.s2)}
-</div>
-</div>`;
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
 }
 
-function slotCard(period,s){
-return`<div class="px-4 py-3 flex items-start gap-3">
-<div class="bg-g-100 text-g-700 rounded-lg px-2 py-1 text-xs font-700 whitespace-nowrap mt-0.5">${period}</div>
-<div class="flex-1 min-w-0">
-<div class="font-700 text-g-900">${s.subject||'—'}</div>
-<div class="text-xs text-gray-500 mt-0.5 space-y-0.5">
-<div>👨‍🏫 ${s.teacher||'—'}</div>
-<div>📋 Mã lớp: <span class="font-600 text-g-700">${s.code||'—'}</span></div>
-<div>📍 Phòng: <span class="font-600 text-g-700">${s.room||'—'}</span></div>
-</div>
-</div>
-</div>`;
-}
-
-function renderClass(code,el){
-const records=classMap[code];
-if(!records||!records.length){el.innerHTML=noResult();return;}
-const r0=records[0];
-const studentList=[...new Set(records.map(r=>r.studentName))].sort();
-el.innerHTML=`
-<div class="bg-white rounded-2xl border border-g-200 overflow-hidden shadow-sm">
-<div class="bg-g-600 text-white px-4 py-3">
-<div class="font-700 text-lg">${code} — ${r0.slot.subject}</div>
-<div class="text-g-100 text-xs mt-0.5">👨‍🏫 ${r0.slot.teacher} · 📍 ${r0.slot.room} · ${r0.period}</div>
-</div>
-<div class="px-4 py-3">
-<div class="text-xs font-600 text-g-700 mb-2">${studentList.length} học sinh</div>
-<div class="flex flex-wrap gap-1.5">
-${studentList.map((s,i)=>`<span class="inline-block bg-g-50 border border-g-200 rounded-lg px-2 py-1 text-xs">${i+1}. ${s}</span>`).join('')}
-</div>
-</div>
-</div>`;
-}
-
-function renderRoom(room,el){
-const records=roomMap[room];
-if(!records||!records.length){el.innerHTML=noResult();return;}
-// group by period+teacher
-const groups={};
-records.forEach(r=>{
-const key=r.period+'|'+r.slot.teacher+'|'+r.slot.code+'|'+r.slot.subject;
-if(!groups[key])groups[key]={period:r.period,teacher:r.slot.teacher,code:r.slot.code,subject:r.slot.subject,students:new Set()};
-groups[key].students.add(r.studentName);
-});
-el.innerHTML=`
-<div class="bg-white rounded-2xl border border-g-200 overflow-hidden shadow-sm">
-<div class="bg-g-600 text-white px-4 py-3">
-<div class="font-700 text-lg">📍 Phòng ${room}</div>
-</div>
-<div class="divide-y divide-g-100">
-${Object.values(groups).map(g=>`
-<div class="px-4 py-3">
-<div class="flex items-center gap-2 mb-1">
-<span class="bg-g-100 text-g-700 rounded-lg px-2 py-0.5 text-xs font-700">${g.period}</span>
-<span class="font-600 text-sm text-g-900">${g.subject} (${g.code})</span>
-</div>
-<div class="text-xs text-gray-500">👨‍🏫 ${g.teacher} · ${g.students.size} học sinh</div>
-</div>`).join('')}
-</div>
-</div>`;
-}
-
-function renderTeacher(name,el){
-const records=teacherMap[name];
-if(!records||!records.length){el.innerHTML=noResult();return;}
-const groups={};
-records.forEach(r=>{
-const key=r.period+'|'+r.slot.code;
-if(!groups[key])groups[key]={period:r.period,code:r.slot.code,subject:r.slot.subject,room:r.slot.room,students:new Set()};
-groups[key].students.add(r.studentName);
-});
-el.innerHTML=`
-<div class="bg-white rounded-2xl border border-g-200 overflow-hidden shadow-sm">
-<div class="bg-g-600 text-white px-4 py-3">
-<div class="font-700 text-lg">👨‍🏫 ${name}</div>
-</div>
-<div class="divide-y divide-g-100">
-${Object.values(groups).map(g=>`
-<div class="px-4 py-3">
-<div class="flex items-center gap-2 flex-wrap mb-1">
-<span class="bg-g-100 text-g-700 rounded-lg px-2 py-0.5 text-xs font-700">${g.period}</span>
-<span class="font-600 text-sm text-g-900">${g.subject} — ${g.code}</span>
-<span class="text-xs text-gray-400">📍 ${g.room}</span>
-</div>
-<div class="text-xs text-gray-500">${g.students.size} học sinh</div>
-<div class="flex flex-wrap gap-1 mt-1">
-${[...g.students].sort().map((s,i)=>`<span class="inline-block bg-g-50 border border-g-200 rounded px-1.5 py-0.5 text-xs">${i+1}. ${s}</span>`).join('')}
-</div>
-</div>`).join('')}
-</div>
-</div>`;
-}
-
-function noResult(){return'<div class="text-center text-gray-400 py-8 text-sm">Không tìm thấy kết quả</div>';}
-
-// Close suggestions on outside click
-document.addEventListener('click',e=>{
-if(!e.target.closest('#searchBox')&&!e.target.closest('#suggestions')){
-document.getElementById('suggestions').classList.add('hidden');
-}
-});
-
-// Export wallpaper
-function exportWallpaper(){
-const sel=document.getElementById('dropdownSelect');
-const val=sel.value;
-if(!val&&currentTab==='student'){return;}
-const canvas=document.getElementById('wallpaperCanvas');
-const ctx=canvas.getContext('2d');
-const W=1080,H=1920;
-canvas.width=W;canvas.height=H;
-
-// BG
-const grad=ctx.createLinearGradient(0,0,W,H);
-grad.addColorStop(0,'#f0fdf4');grad.addColorStop(0.5,'#dcfce7');grad.addColorStop(1,'#bbf7d0');
-ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
-
-// Header
-ctx.fillStyle='#166534';ctx.font='bold 48px "Be Vietnam Pro",sans-serif';
-ctx.textAlign='center';
-ctx.fillText('Thời Khóa Biểu Tự Chọn 12',W/2,120);
-ctx.font='24px "Be Vietnam Pro",sans-serif';ctx.fillStyle='#15803d';
-ctx.fillText('Áp dụng từ ngày 4/5/2026',W/2,165);
-
-let y=230;
-ctx.textAlign='left';
-
-if(currentTab==='student'){
-const records=studentMap[val];
-if(!records)return;
-const d=records[0];
-ctx.fillStyle='#14532d';ctx.font='bold 40px "Be Vietnam Pro",sans-serif';
-ctx.fillText(d.studentName,80,y);y+=35;
-ctx.font='24px "Be Vietnam Pro",sans-serif';ctx.fillStyle='#16a34a';
-ctx.fillText('Lớp '+d.realClass,80,y);y+=60;
-[{p:'Tiết 1-2',s:d.s1},{p:'Tiết 3-4',s:d.s2}].forEach(item=>{
-ctx.fillStyle='#16a34a';ctx.fillRect(60,y-28,W-120,130);
-ctx.beginPath();ctx.roundRect(60,y-28,W-120,130,16);ctx.fill();
-ctx.fillStyle='#fff';ctx.font='bold 28px "Be Vietnam Pro",sans-serif';
-ctx.fillText(item.p+' — '+item.s.subject,90,y+5);
-ctx.font='22px "Be Vietnam Pro",sans-serif';
-ctx.fillText('GV: '+item.s.teacher,90,y+40);
-ctx.fillText('Mã lớp: '+item.s.code+'  ·  Phòng: '+item.s.room,90,y+72);
-y+=160;
-});
-} else if(currentTab==='teacher'){
-const records=teacherMap[val];
-if(!records)return;
-ctx.fillStyle='#14532d';ctx.font='bold 40px "Be Vietnam Pro",sans-serif';
-ctx.fillText('GV: '+val,80,y);y+=60;
-const groups={};
-records.forEach(r=>{
-const key=r.period+'|'+r.slot.code;
-if(!groups[key])groups[key]={period:r.period,code:r.slot.code,subject:r.slot.subject,room:r.slot.room,count:0};
-groups[key].count++;
-});
-Object.values(groups).forEach(g=>{
-ctx.fillStyle='#16a34a';
-ctx.beginPath();ctx.roundRect(60,y-28,W-120,100,16);ctx.fill();
-ctx.fillStyle='#fff';ctx.font='bold 26px "Be Vietnam Pro",sans-serif';
-ctx.fillText(g.period+' — '+g.subject+' ('+g.code+')',90,y+5);
-ctx.font='22px "Be Vietnam Pro",sans-serif';
-ctx.fillText('Phòng: '+g.room+'  ·  '+g.count+' HS',90,y+40);
-y+=130;
-});
-} else {
-ctx.fillStyle='#14532d';ctx.font='bold 36px "Be Vietnam Pro",sans-serif';
-ctx.fillText(currentTab==='class'?'Mã lớp: '+val:'Phòng: '+val,80,y);y+=50;
-const src=currentTab==='class'?classMap:roomMap;
-const records=src[val];
-if(records){
-const seen=new Set();
-records.forEach(r=>{
-const key=r.period;
-if(seen.has(key))return;seen.add(key);
-ctx.fillStyle='#16a34a';
-ctx.beginPath();ctx.roundRect(60,y-28,W-120,90,16);ctx.fill();
-ctx.fillStyle='#fff';ctx.font='bold 24px "Be Vietnam Pro",sans-serif';
-ctx.fillText(r.period+' — '+r.slot.subject+' ('+r.slot.code+')',90,y);
-ctx.font='20px "Be Vietnam Pro",sans-serif';
-ctx.fillText('GV: '+r.slot.teacher+(currentTab==='class'?' · Phòng: '+r.slot.room:''),90,y+32);
-y+=120;
-});
-}
-}
-
-// Footer
-ctx.textAlign='center';ctx.fillStyle='#86efac';ctx.font='20px "Be Vietnam Pro",sans-serif';
-ctx.fillText('TKB Tự Chọn — NK Khoa Hưng',W/2,H-60);
-
-const link=document.createElement('a');
-link.download='tkb_'+val.replace(/\s+/g,'_')+'.png';
-link.href=canvas.toDataURL('image/png');
-link.click();
-}
-
-// Export CSV
-function exportCSV(){
-let csv='\uFEFF'+'Lớp thực,Học sinh,Môn T1-2,GV T1-2,Mã lớp T1-2,Phòng T1-2,Môn T3-4,GV T3-4,Mã lớp T3-4,Phòng T3-4\n';
-allData.forEach(d=>{
-csv+=[d.realClass,d.studentName,d.s1.subject,d.s1.teacher,d.s1.code,d.s1.room,d.s2.subject,d.s2.teacher,d.s2.code,d.s2.room].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')+'\n';
-});
-const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-const link=document.createElement('a');
-link.href=URL.createObjectURL(blob);
-link.download='tkb_tu_chon_12.csv';
-link.click();
-}
-
-// Init
-async function init(){
-try{
-const resp=await fetch(CSV_URL);
-if(!resp.ok)throw new Error('Fetch failed');
-const text=await resp.text();
-allData=parseCSV(text);
-buildIndexes();
-document.getElementById('loading').classList.add('hidden');
-document.getElementById('main').classList.remove('hidden');
-renderStats();
-switchTab('student');
-lucide.createIcons();
-}catch(e){
-document.getElementById('loading').innerHTML='<div class="text-red-500 text-center"><p class="font-600">Lỗi tải dữ liệu</p><p class="text-sm mt-2">Vui lòng kiểm tra kết nối mạng và thử lại</p><button onclick="init()" class="mt-3 px-4 py-2 bg-g-600 text-white rounded-lg text-sm">Thử lại</button></div>';
-}
+function exportCSV() {
+  let csv = 'Lớp,Họ tên,Môn 1,GV 1,Mã lớp 1,Phòng 1,Môn 2,GV 2,Mã lớp 2,Phòng 2\n';
+  allData.forEach(d => {
+    csv += `${d.realClass},${d.studentName},${d.subject1},${d.teacher1},${d.classCode1},${d.room1},${d.subject2},${d.teacher2},${d.classCode2},${d.room2}\n`;
+  });
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'ThoiKhoaBieu_Lop12.csv';
+  link.click();
 }
 
 // Element SDK
-const defaultConfig={
-main_title:'Thời Khóa Biểu Tự Chọn Lớp 12',
-apply_date:'Áp dụng từ ngày 4/5/2026',
-background_color:'#f0fdf4',
-surface_color:'#ffffff',
-text_color:'#166534',
-primary_action:'#16a34a',
-secondary_action:'#15803d',
-font_family:'Be Vietnam Pro',
-font_size:16
+const defaultConfig = {
+  page_title: 'Thời Khóa Biểu Tự Chọn Lớp 12',
+  background_color: '#f0fdf4',
+  surface_color: '#ffffff',
+  text_color: '#1f2937',
+  primary_color: '#16a34a',
+  secondary_color: '#86efac',
+  font_family: 'Be Vietnam Pro',
+  font_size: 16
 };
 
 window.elementSdk.init({
-defaultConfig,
-onConfigChange:async(config)=>{
-const t=document.getElementById('mainTitle');
-if(t)t.textContent=config.main_title||defaultConfig.main_title;
-const d=document.getElementById('applyDate');
-if(d)d.textContent=config.apply_date||defaultConfig.apply_date;
-document.querySelectorAll('.bg-g-600').forEach(el=>el.style.backgroundColor=config.primary_action||defaultConfig.primary_action);
-document.body.style.fontFamily=(config.font_family||defaultConfig.font_family)+', sans-serif';
-},
-mapToCapabilities:(config)=>({
-recolorables:[
-{get:()=>config.background_color||defaultConfig.background_color,set:v=>{config.background_color=v;window.elementSdk.setConfig({background_color:v})}},
-{get:()=>config.surface_color||defaultConfig.surface_color,set:v=>{config.surface_color=v;window.elementSdk.setConfig({surface_color:v})}},
-{get:()=>config.text_color||defaultConfig.text_color,set:v=>{config.text_color=v;window.elementSdk.setConfig({text_color:v})}},
-{get:()=>config.primary_action||defaultConfig.primary_action,set:v=>{config.primary_action=v;window.elementSdk.setConfig({primary_action:v})}},
-{get:()=>config.secondary_action||defaultConfig.secondary_action,set:v=>{config.secondary_action=v;window.elementSdk.setConfig({secondary_action:v})}}
-],
-borderables:[],
-fontEditable:{get:()=>config.font_family||defaultConfig.font_family,set:v=>{config.font_family=v;window.elementSdk.setConfig({font_family:v})}},
-fontSizeable:{get:()=>config.font_size||defaultConfig.font_size,set:v=>{config.font_size=v;window.elementSdk.setConfig({font_size:v})}}
-}),
-mapToEditPanelValues:(config)=>new Map([
-['main_title',config.main_title||defaultConfig.main_title],
-['apply_date',config.apply_date||defaultConfig.apply_date]
-])
+  defaultConfig,
+  onConfigChange: async (config) => {
+    const bg = config.background_color || defaultConfig.background_color;
+    const primary = config.primary_color || defaultConfig.primary_color;
+    const title = config.page_title || defaultConfig.page_title;
+    const font = config.font_family || defaultConfig.font_family;
+    
+    document.body.style.backgroundColor = bg;
+    document.getElementById('page-title').textContent = title;
+    document.body.style.fontFamily = `${font}, sans-serif`;
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); }},
+      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }},
+      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); }},
+      { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); }},
+      { get: () => config.secondary_color || defaultConfig.secondary_color, set: (v) => { config.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); }}
+    ],
+    borderables: [],
+    fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }},
+    fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }}
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['page_title', config.page_title || defaultConfig.page_title]
+  ])
 });
 
-init();
+// Init
+fetchData();
 lucide.createIcons();
 </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f45a5d0d0250701',t:'MTc3NzU0MjY4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f45d60712de85ce',t:'MTc3NzU0NDY1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
