@@ -9,567 +9,516 @@
   <script src="/_sdk/element_sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <script>
-tailwind.config={theme:{extend:{fontFamily:{main:['"Be Vietnam Pro"','sans-serif']},colors:{bg:'#f0f4f8',card:'#ffffff',primary:'#1e3a5f',accent:'#2563eb',accentLight:'#dbeafe',text:'#1e293b',muted:'#64748b',border:'#e2e8f0'}}}}
+tailwind.config={theme:{extend:{colors:{g:{50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d'}},fontFamily:{vn:['"Be Vietnam Pro"','sans-serif']}}}}
 </script>
   <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;font-family:'Be Vietnam Pro',sans-serif}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:#94a3b8;border-radius:4px}
-.tab-btn{transition:all .2s}
-.tab-btn.active{background:#1e3a5f;color:#fff;box-shadow:0 2px 8px rgba(30,58,95,.3)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:'Be Vietnam Pro',sans-serif}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#86efac;border-radius:3px}
+.tab-active{background:#16a34a;color:#fff;box-shadow:0 2px 8px rgba(22,163,74,.3)}
 .fade-in{animation:fadeIn .3s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .card-hover{transition:all .2s}
-.card-hover:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-1px)}
-.dropdown-menu{max-height:240px;overflow-y:auto}
-.stat-card{background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%)}
+.card-hover:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(22,163,74,.15)}
+.dropdown-item:hover{background:#f0fdf4}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{animation:spin .8s linear infinite;border:3px solid #dcfce7;border-top-color:#16a34a;border-radius:50%;width:32px;height:32px}
+@media print{.no-print{display:none!important}}
 </style>
   <style>body { box-sizing: border-box; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
- <body class="h-full bg-[#f0f4f8]">
-  <div id="app" class="h-full w-full overflow-auto">
-   <div id="loading" class="flex items-center justify-center h-full">
-    <div class="text-center">
-     <div class="inline-block w-10 h-10 border-3 border-[#2563eb] border-t-transparent rounded-full animate-spin mb-4" style="border-width:3px"></div>
-     <p class="text-[#64748b] text-sm">Đang tải dữ liệu...</p>
-    </div>
-   </div>
-   <div id="main" class="hidden w-full max-w-4xl mx-auto px-3 py-4 pb-8">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-     <div>
-      <h1 id="titleEl" class="text-lg sm:text-xl font-bold text-[#1e3a5f] leading-tight">Thời Khóa Biểu Tự Chọn Lớp 12</h1>
-      <p id="subtitleEl" class="text-xs text-[#64748b] mt-0.5">Áp dụng từ ngày 4/5/2026</p>
-     </div><a href="https://tkbnkhoahung.github.io/tkbnk2526hs/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#1e3a5f] text-white text-xs rounded-lg hover:bg-[#2563eb] transition-colors"> <i data-lucide="home" style="width:14px;height:14px"></i> <span class="hidden sm:inline">Trang chủ</span> </a>
-    </div><!-- Stats -->
-    <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4"></div><!-- Tabs -->
-    <div class="flex gap-1.5 mb-3 overflow-x-auto pb-1" id="tabBar">
-     <button onclick="switchTab('student')" data-tab="student" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-[#64748b] bg-white whitespace-nowrap">Học sinh</button> <button onclick="switchTab('class')" data-tab="class" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-[#64748b] bg-white whitespace-nowrap">Mã lớp</button> <button onclick="switchTab('room')" data-tab="room" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-[#64748b] bg-white whitespace-nowrap">Phòng</button> <button onclick="switchTab('teacher')" data-tab="teacher" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-[#64748b] bg-white whitespace-nowrap">Giáo viên</button>
+ <body class="h-full bg-gray-50">
+  <div id="app" class="h-full w-full overflow-auto" style="background:linear-gradient(135deg,#f0fdf4 0%,#fff 50%,#dcfce7 100%)"><!-- Loading -->
+   <div id="loading" class="flex flex-col items-center justify-center" style="height:100%">
+    <div class="spinner"></div>
+    <p class="mt-4 text-g-700 font-medium">Đang tải dữ liệu...</p>
+   </div><!-- Main Content -->
+   <div id="main" class="hidden w-full max-w-4xl mx-auto px-3 pb-8" style="padding-top:12px"><!-- Header -->
+    <header class="text-center mb-4">
+     <div class="flex items-center justify-center gap-2 mb-1"><a href="https://tkbnkhoahung.github.io/tkbnk2526hs/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-sm text-g-600 hover:text-g-800 no-print" title="Trang chủ"> <i data-lucide="home" style="width:16px;height:16px"></i> </a>
+      <h1 id="mainTitle" class="text-xl md:text-2xl font-800 text-g-800">Thời Khóa Biểu Tự Chọn Lớp 12</h1>
+     </div>
+     <p id="applyDate" class="text-sm text-g-600 font-medium">Áp dụng từ ngày 4/5/2026</p>
+    </header><!-- Stats -->
+    <div id="stats" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4"></div><!-- Tabs -->
+    <div class="flex gap-1 mb-3 overflow-x-auto no-print" id="tabBar"><button onclick="switchTab('student')" data-tab="student" class="tab-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-600 text-g-700 bg-white border border-g-200 whitespace-nowrap transition-all"> <i data-lucide="user" style="width:14px;height:14px"></i> Học sinh </button> <button onclick="switchTab('class')" data-tab="class" class="tab-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-600 text-g-700 bg-white border border-g-200 whitespace-nowrap transition-all"> <i data-lucide="book-open" style="width:14px;height:14px"></i> Mã lớp </button> <button onclick="switchTab('room')" data-tab="room" class="tab-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-600 text-g-700 bg-white border border-g-200 whitespace-nowrap transition-all"> <i data-lucide="map-pin" style="width:14px;height:14px"></i> Phòng </button> <button onclick="switchTab('teacher')" data-tab="teacher" class="tab-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-600 text-g-700 bg-white border border-g-200 whitespace-nowrap transition-all"> <i data-lucide="briefcase" style="width:14px;height:14px"></i> Giáo viên </button>
     </div><!-- Search + Dropdown -->
-    <div class="flex gap-2 mb-3 relative">
-     <div class="relative flex-1">
-      <i data-lucide="search" style="width:14px;height:14px" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94a3b8]"></i> <input id="searchInput" type="text" placeholder="Tìm kiếm..." class="w-full pl-8 pr-8 py-2 text-xs rounded-lg border border-[#e2e8f0] bg-white focus:outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]" oninput="onSearch()" onfocus="showSuggestions()"> <button id="clearBtn" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[#1e293b]" onclick="clearSearch()"> <i data-lucide="x" style="width:14px;height:14px"></i> </button>
-      <div id="suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-[#e2e8f0] rounded-lg shadow-lg z-50 dropdown-menu"></div>
-     </div>
-     <div class="relative">
-      <select id="dropdownSelect" onchange="onDropdownSelect()" class="appearance-none pl-3 pr-7 py-2 text-xs rounded-lg border border-[#e2e8f0] bg-white focus:outline-none focus:border-[#2563eb] cursor-pointer min-w-[120px] max-w-[180px] truncate"> </select> <i data-lucide="chevron-down" style="width:12px;height:12px" class="absolute right-2 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none"></i>
-     </div>
+    <div class="flex gap-2 mb-3 no-print relative">
+     <div class="relative flex-1"><i data-lucide="search" style="width:16px;height:16px" class="absolute left-3 top-1/2 -translate-y-1/2 text-g-400"></i> <input id="searchBox" type="text" placeholder="Tìm kiếm..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-g-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-g-400 focus:border-transparent" oninput="onSearch()" onfocus="showSuggestions()">
+      <div id="suggestions" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-g-200 rounded-lg shadow-lg max-h-48 overflow-auto z-50"></div>
+     </div><select id="dropdownSelect" onchange="onDropdownChange()" class="px-3 py-2 rounded-lg border border-g-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-g-400 min-w-[140px] max-w-[200px]"></select> <button onclick="clearSearch()" class="px-3 py-2 rounded-lg border border-g-200 bg-white text-g-600 hover:bg-g-50 text-sm" title="Xóa tìm kiếm"> <i data-lucide="x" style="width:16px;height:16px"></i> </button>
     </div><!-- Results -->
-    <div id="results" class="space-y-2 mb-6"></div><!-- Export Phone Wallpaper -->
-    <div class="mt-6 mb-3">
-     <button onclick="exportWallpaper()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#1e3a5f] to-[#2563eb] text-white text-xs font-medium rounded-lg hover:opacity-90 transition-opacity"> <i data-lucide="image" style="width:14px;height:14px"></i> Xuất hình nền điện thoại </button>
-    </div><!-- Export CSV -->
-    <div class="mb-4">
-     <button onclick="exportCSV()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#e2e8f0] text-[#1e3a5f] text-xs font-medium rounded-lg hover:bg-[#f8fafc] transition-colors"> <i data-lucide="download" style="width:14px;height:14px"></i> Xuất CSV / Excel toàn bộ </button>
+    <div id="results" class="space-y-3 fade-in"></div><!-- Export Phone Wallpaper -->
+    <div class="mt-6 flex flex-wrap gap-2 justify-center no-print"><button onclick="exportWallpaper()" class="flex items-center gap-2 px-4 py-2 bg-g-600 text-white rounded-lg text-sm font-600 hover:bg-g-700 transition-all"> <i data-lucide="image" style="width:16px;height:16px"></i> Xuất hình nền điện thoại </button> <button onclick="exportCSV()" class="flex items-center gap-2 px-4 py-2 bg-g-700 text-white rounded-lg text-sm font-600 hover:bg-g-800 transition-all"> <i data-lucide="download" style="width:16px;height:16px"></i> Xuất CSV/Excel </button>
     </div>
-   </div><!-- Wallpaper Modal -->
-   <div id="wallpaperModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeWallpaper()">
-    <div class="bg-white rounded-xl max-w-sm w-full max-h-[90%] overflow-auto p-4 fade-in">
-     <div class="flex justify-between items-center mb-3">
-      <h3 class="font-semibold text-sm text-[#1e3a5f]">Hình nền TKB</h3><button onclick="closeWallpaper()" class="text-[#94a3b8] hover:text-[#1e293b]"><i data-lucide="x" style="width:16px;height:16px"></i></button>
-     </div>
-     <canvas id="wallpaperCanvas" class="w-full rounded-lg border border-[#e2e8f0]"></canvas><a id="downloadWallpaper" download="tkb-wallpaper.png" class="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#2563eb] text-white text-xs font-medium rounded-lg hover:bg-[#1d4ed8] transition-colors"> <i data-lucide="download" style="width:14px;height:14px"></i> Tải về </a>
-    </div>
-   </div>
+   </div><!-- Wallpaper Canvas (hidden) -->
+   <canvas id="wallpaperCanvas" class="hidden"></canvas>
   </div>
   <script>
 const SHEET_ID='14QJ8ALOZYFfLpuMsIaMRTzmMgvES8EZQsWSJeyqW160';
 const CSV_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
-let rawData=[], students=[], classMap={}, roomMap={}, teacherMap={};
-let currentTab='student', currentSelection=null;
+let allData=[];
+let currentTab='student';
+let students=new Set(),classes=new Set(),rooms=new Set(),teachers=new Set();
+let studentMap={},classMap={},roomMap={},teacherMap={};
 
-// Config
-const defaultConfig={
-  main_title:'Thời Khóa Biểu Tự Chọn Lớp 12',
-  subtitle:'Áp dụng từ ngày 4/5/2026',
-  background_color:'#f0f4f8',
-  surface_color:'#ffffff',
-  text_color:'#1e3a5f',
-  accent_color:'#2563eb',
-  muted_color:'#64748b',
-  font_family:'Be Vietnam Pro',
-  font_size:14
-};
-
-window.elementSdk.init({
-  defaultConfig,
-  onConfigChange:async(c)=>{
-    const t=c.main_title||defaultConfig.main_title;
-    const s=c.subtitle||defaultConfig.subtitle;
-    document.getElementById('titleEl').textContent=t;
-    document.getElementById('subtitleEl').textContent=s;
-    const bg=c.background_color||defaultConfig.background_color;
-    const sf=c.surface_color||defaultConfig.surface_color;
-    const tx=c.text_color||defaultConfig.text_color;
-    const ac=c.accent_color||defaultConfig.accent_color;
-    const mu=c.muted_color||defaultConfig.muted_color;
-    
-    // Apply colors to page
-    document.body.style.backgroundColor=bg;
-    document.documentElement.style.setProperty('--color-bg',bg);
-    document.documentElement.style.setProperty('--color-text',tx);
-    document.documentElement.style.setProperty('--color-accent',ac);
-    document.documentElement.style.setProperty('--color-muted',mu);
-    
-    // Update active tab colors
-    document.querySelectorAll('.tab-btn.active').forEach(b=>{
-      b.style.backgroundColor=tx;
-    });
-    
-    // Update stat card gradient
-    document.querySelectorAll('.stat-card').forEach(card=>{
-      card.style.background=`linear-gradient(135deg,${tx} 0%,${ac} 100%)`;
-    });
-    
-    const ff=c.font_family||defaultConfig.font_family;
-    const fs=c.font_size||defaultConfig.font_size;
-    document.body.style.fontFamily=`${ff}, sans-serif`;
-    document.body.style.fontSize=fs+'px';
-  },
-  mapToCapabilities:(c)=>({
-    recolorables:[
-      {get:()=>c.background_color||defaultConfig.background_color,set:v=>{c.background_color=v;window.elementSdk.setConfig({background_color:v})}},
-      {get:()=>c.text_color||defaultConfig.text_color,set:v=>{c.text_color=v;window.elementSdk.setConfig({text_color:v})}},
-      {get:()=>c.accent_color||defaultConfig.accent_color,set:v=>{c.accent_color=v;window.elementSdk.setConfig({accent_color:v})}},
-      {get:()=>c.muted_color||defaultConfig.muted_color,set:v=>{c.muted_color=v;window.elementSdk.setConfig({muted_color:v})}}
-    ],
-    borderables:[],
-    fontEditable:{get:()=>c.font_family||defaultConfig.font_family,set:v=>{c.font_family=v;window.elementSdk.setConfig({font_family:v})}},
-    fontSizeable:{get:()=>c.font_size||defaultConfig.font_size,set:v=>{c.font_size=v;window.elementSdk.setConfig({font_size:v})}}
-  }),
-  mapToEditPanelValues:(c)=>new Map([
-    ['main_title',c.main_title||defaultConfig.main_title],
-    ['subtitle',c.subtitle||defaultConfig.subtitle],
-    ['background_color',c.background_color||defaultConfig.background_color],
-    ['text_color',c.text_color||defaultConfig.text_color],
-    ['accent_color',c.accent_color||defaultConfig.accent_color],
-    ['muted_color',c.muted_color||defaultConfig.muted_color]
-  ])
-});
-
+// Parse CSV
 function parseCSV(text){
-  const lines=[];
-  let cur='',inQ=false;
-  const rows=[];
-  // Simple CSV parse handling quotes
-  for(let i=0;i<text.length;i++){
-    const ch=text[i];
-    if(inQ){
-      if(ch==='"'&&text[i+1]==='"'){cur+='"';i++}
-      else if(ch==='"')inQ=false;
-      else cur+=ch;
-    }else{
-      if(ch==='"')inQ=true;
-      else if(ch===','){lines.push(cur);cur=''}
-      else if(ch==='\n'||ch==='\r'){
-        if(ch==='\r'&&text[i+1]==='\n')i++;
-        lines.push(cur);cur='';
-        if(lines.length)rows.push([...lines]);
-        lines.length=0;
-      }else cur+=ch;
-    }
-  }
-  lines.push(cur);
-  if(lines.some(l=>l.trim()))rows.push([...lines]);
-  return rows;
+const lines=text.split('\n').filter(l=>l.trim());
+const result=[];
+for(let i=1;i<lines.length;i++){
+const cols=parseCSVLine(lines[i]);
+if(cols.length>=10&&cols[0].trim()){
+const realClass=cols[0].trim();
+const studentName=cols[1].trim();
+const sub1=cols[2].trim();
+const teacher1=cols[3].trim();
+const code1=cols[4].trim();
+const room1=cols[5].trim();
+const sub2=cols[6].trim();
+const teacher2=cols[7].trim();
+const code2=cols[8].trim();
+const room2=cols[9].trim();
+if(studentName){
+result.push({realClass,studentName,
+s1:{subject:sub1,teacher:teacher1,code:code1,room:room1},
+s2:{subject:sub2,teacher:teacher2,code:code2,room:room2}});
+}
+}
+}
+return result;
 }
 
-async function loadData(){
-  try{
-    const r=await fetch(CSV_URL);
-    if(!r.ok)throw new Error('Fetch fail');
-    const txt=await r.text();
-    const rows=parseCSV(txt);
-    if(rows.length<2)throw new Error('No data');
-
-    // Skip header row (first row is column names)
-    rawData=[];
-    for(let i=1;i<rows.length;i++){
-      const row=rows[i];
-      if(!row||row.length<2)continue;
-      const realClass=(row[0]||'').trim();
-      const name=(row[1]||'').trim();
-      if(!realClass&&!name)continue;
-
-      const sessions=[];
-      // Parse pairs: subject, teacher, classCode, room starting from col 2
-      // Pattern: MON, TEACHER, CLASS_CODE, ROOM repeating
-      let ci=2;
-      let sessionIdx=0;
-      while(ci+3<row.length){
-        const subj=(row[ci]||'').trim();
-        const teacher=(row[ci+1]||'').trim();
-        const classCode=(row[ci+2]||'').trim();
-        const room=(row[ci+3]||'').trim();
-        if(subj||teacher||classCode||room){
-          sessionIdx++;
-          sessions.push({period:`Tiết ${sessionIdx*2-1}-${sessionIdx*2}`,subject:subj,teacher,classCode,room});
-        }
-        ci+=4;
-      }
-
-      const entry={realClass,name,sessions};
-      rawData.push(entry);
-    }
-
-    buildIndexes();
-    renderStats();
-    switchTab('student');
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('main').classList.remove('hidden');
-    lucide.createIcons();
-  }catch(e){
-    console.error(e);
-    document.getElementById('loading').innerHTML=`<div class="text-center p-8"><p class="text-red-500 text-sm font-medium mb-2">Không thể tải dữ liệu</p><p class="text-xs text-gray-500 mb-4">${e.message}</p><button onclick="loadData()" class="px-4 py-2 bg-blue-600 text-white text-xs rounded-lg">Thử lại</button></div>`;
-  }
+function parseCSVLine(line){
+const result=[];let current='';let inQuotes=false;
+for(let i=0;i<line.length;i++){
+const c=line[i];
+if(inQuotes){if(c==='"'){if(i+1<line.length&&line[i+1]==='"'){current+='"';i++}else{inQuotes=false}}else{current+=c}}
+else{if(c==='"'){inQuotes=true}else if(c===','){result.push(current);current=''}else{current+=c}}
+}
+result.push(current);
+return result;
 }
 
 function buildIndexes(){
-  students=[];
-  classMap={};roomMap={};teacherMap={};
-
-  rawData.forEach(entry=>{
-    students.push({name:entry.name,realClass:entry.realClass,sessions:entry.sessions});
-
-    entry.sessions.forEach(s=>{
-      if(s.classCode){
-        if(!classMap[s.classCode])classMap[s.classCode]={subject:s.subject,teacher:s.teacher,room:s.room,students:[]};
-        classMap[s.classCode].students.push({name:entry.name,realClass:entry.realClass,period:s.period});
-      }
-      if(s.room){
-        if(!roomMap[s.room])roomMap[s.room]=[];
-        roomMap[s.room].push({teacher:s.teacher,period:s.period,subject:s.subject,classCode:s.classCode,studentCount:0});
-      }
-      if(s.teacher){
-        if(!teacherMap[s.teacher])teacherMap[s.teacher]=[];
-        teacherMap[s.teacher].push({period:s.period,subject:s.subject,classCode:s.classCode,room:s.room,realClass:entry.realClass,studentName:entry.name});
-      }
-    });
-  });
-
-  // Dedupe room entries and count students
-  Object.keys(roomMap).forEach(r=>{
-    const grouped={};
-    roomMap[r].forEach(e=>{
-      const k=e.period+'|'+e.teacher+'|'+e.classCode;
-      if(!grouped[k])grouped[k]={...e,studentCount:1};
-      else grouped[k].studentCount++;
-    });
-    roomMap[r]=Object.values(grouped);
-  });
+students.clear();classes.clear();rooms.clear();teachers.clear();
+studentMap={};classMap={};roomMap={};teacherMap={};
+allData.forEach(d=>{
+students.add(d.studentName);
+if(!studentMap[d.studentName])studentMap[d.studentName]=[];
+studentMap[d.studentName].push(d);
+[d.s1,d.s2].forEach((s,idx)=>{
+const period=idx===0?'Tiết 1-2':'Tiết 3-4';
+if(s.code){
+classes.add(s.code);
+if(!classMap[s.code])classMap[s.code]=[];
+classMap[s.code].push({...d,period,slot:s});
+}
+if(s.room){
+rooms.add(s.room);
+if(!roomMap[s.room])roomMap[s.room]=[];
+roomMap[s.room].push({...d,period,slot:s});
+}
+if(s.teacher){
+teachers.add(s.teacher);
+if(!teacherMap[s.teacher])teacherMap[s.teacher]=[];
+teacherMap[s.teacher].push({...d,period,slot:s});
+}
+});
+});
 }
 
 function renderStats(){
-  const el=document.getElementById('stats');
-  const s=[
-    {label:'Học sinh',value:students.length,icon:'users'},
-    {label:'Mã lớp',value:Object.keys(classMap).length,icon:'book-open'},
-    {label:'Phòng',value:Object.keys(roomMap).length,icon:'map-pin'},
-    {label:'Giáo viên',value:Object.keys(teacherMap).length,icon:'user-check'}
-  ];
-  el.innerHTML=s.map(x=>`
-    <div class="stat-card rounded-xl p-3 text-white">
-      <div class="flex items-center gap-2 mb-1"><i data-lucide="${x.icon}" style="width:14px;height:14px;opacity:.8"></i><span class="text-[10px] opacity-80">${x.label}</span></div>
-      <div class="text-xl font-bold">${x.value}</div>
-    </div>
-  `).join('');
-  lucide.createIcons();
+const el=document.getElementById('stats');
+const items=[
+{icon:'users',label:'Học sinh',val:students.size,color:'bg-g-100 text-g-800'},
+{icon:'book-open',label:'Mã lớp',val:classes.size,color:'bg-emerald-100 text-emerald-800'},
+{icon:'map-pin',label:'Phòng',val:rooms.size,color:'bg-teal-100 text-teal-800'},
+{icon:'briefcase',label:'Giáo viên',val:teachers.size,color:'bg-green-100 text-green-800'}
+];
+el.innerHTML=items.map(i=>`<div class="${i.color} rounded-xl p-3 text-center card-hover">
+<div class="text-2xl font-800">${i.val}</div>
+<div class="text-xs font-500 mt-1 flex items-center justify-center gap-1"><i data-lucide="${i.icon}" style="width:12px;height:12px"></i>${i.label}</div>
+</div>`).join('');
+lucide.createIcons();
 }
 
-function switchTab(tab){
-  currentTab=tab;
-  currentSelection=null;
-  document.querySelectorAll('.tab-btn').forEach(b=>{
-    b.classList.toggle('active',b.dataset.tab===tab);
-  });
-  document.getElementById('searchInput').value='';
-  document.getElementById('clearBtn').classList.add('hidden');
-  hideSuggestions();
-  populateDropdown();
-  // Auto-select first item
-  const dd=document.getElementById('dropdownSelect');
-  if(dd.options.length>0){
-    currentSelection=dd.value;
-    renderResults();
-  }
+function getListForTab(){
+const m={student:[...students].sort(),class:[...classes].sort(),room:[...rooms].sort(),teacher:[...teachers].sort()};
+return m[currentTab]||[];
 }
 
 function populateDropdown(){
-  const dd=document.getElementById('dropdownSelect');
-  dd.innerHTML='';
-  let items=[];
-  if(currentTab==='student')items=students.map(s=>s.name).filter((v,i,a)=>a.indexOf(v)===i).sort();
-  else if(currentTab==='class')items=Object.keys(classMap).sort();
-  else if(currentTab==='room')items=Object.keys(roomMap).sort();
-  else items=Object.keys(teacherMap).sort();
-
-  items.forEach(it=>{
-    const o=document.createElement('option');
-    o.value=it;o.textContent=it;
-    dd.appendChild(o);
-  });
+const sel=document.getElementById('dropdownSelect');
+const list=getListForTab();
+sel.innerHTML=list.map(v=>`<option value="${v}">${v}</option>`).join('');
 }
 
-function onDropdownSelect(){
-  const dd=document.getElementById('dropdownSelect');
-  currentSelection=dd.value;
-  document.getElementById('searchInput').value='';
-  document.getElementById('clearBtn').classList.add('hidden');
-  hideSuggestions();
-  renderResults();
+function switchTab(tab){
+currentTab=tab;
+document.querySelectorAll('.tab-btn').forEach(b=>{
+b.classList.remove('tab-active');
+if(b.dataset.tab===tab)b.classList.add('tab-active');
+});
+document.getElementById('searchBox').value='';
+document.getElementById('suggestions').classList.add('hidden');
+populateDropdown();
+const sel=document.getElementById('dropdownSelect');
+if(sel.value)renderResult(sel.value);
+else document.getElementById('results').innerHTML='';
+const placeholders={student:'Tìm học sinh...',class:'Tìm mã lớp...',room:'Tìm phòng...',teacher:'Tìm giáo viên...'};
+document.getElementById('searchBox').placeholder=placeholders[tab]||'Tìm kiếm...';
+}
+
+function onDropdownChange(){
+const val=document.getElementById('dropdownSelect').value;
+document.getElementById('searchBox').value='';
+document.getElementById('suggestions').classList.add('hidden');
+if(val)renderResult(val);
 }
 
 function onSearch(){
-  const q=document.getElementById('searchInput').value.trim();
-  document.getElementById('clearBtn').classList.toggle('hidden',!q);
-  if(!q){hideSuggestions();onDropdownSelect();return}
-  showSuggestions();
+const q=document.getElementById('searchBox').value.trim().toLowerCase();
+showSuggestions();
+if(!q){
+const sel=document.getElementById('dropdownSelect');
+if(sel.value)renderResult(sel.value);
+return;
 }
-
-function clearSearch(){
-  document.getElementById('searchInput').value='';
-  document.getElementById('clearBtn').classList.add('hidden');
-  hideSuggestions();
-  onDropdownSelect();
 }
 
 function showSuggestions(){
-  const q=document.getElementById('searchInput').value.trim().toLowerCase();
-  if(!q){hideSuggestions();return}
-  const sg=document.getElementById('suggestions');
-  let items=[];
-  if(currentTab==='student')items=students.map(s=>s.name).filter((v,i,a)=>a.indexOf(v)===i);
-  else if(currentTab==='class')items=Object.keys(classMap);
-  else if(currentTab==='room')items=Object.keys(roomMap);
-  else items=Object.keys(teacherMap);
-
-  const filtered=items.filter(x=>x.toLowerCase().includes(q));
-  if(!filtered.length){sg.classList.add('hidden');return}
-
-  sg.innerHTML=filtered.slice(0,20).map(x=>`<div class="px-3 py-2 text-xs hover:bg-[#dbeafe] cursor-pointer transition-colors" onclick="selectSuggestion('${x.replace(/'/g,"\\'")}')">${highlight(x,q)}</div>`).join('');
-  sg.classList.remove('hidden');
+const q=document.getElementById('searchBox').value.trim().toLowerCase();
+const box=document.getElementById('suggestions');
+if(!q){box.classList.add('hidden');return;}
+const list=getListForTab().filter(v=>v.toLowerCase().includes(q));
+if(!list.length){box.classList.add('hidden');return;}
+box.innerHTML=list.slice(0,20).map(v=>`<div class="dropdown-item px-3 py-2 cursor-pointer text-sm" onclick="selectSuggestion('${v.replace(/'/g,"\\'")}')">${highlight(v,q)}</div>`).join('');
+box.classList.remove('hidden');
 }
 
 function highlight(text,q){
-  const idx=text.toLowerCase().indexOf(q);
-  if(idx<0)return text;
-  return text.slice(0,idx)+'<span class="font-bold text-[#2563eb]">'+text.slice(idx,idx+q.length)+'</span>'+text.slice(idx+q.length);
+const idx=text.toLowerCase().indexOf(q);
+if(idx<0)return text;
+return text.slice(0,idx)+'<span class="bg-g-200 font-600 rounded px-0.5">'+text.slice(idx,idx+q.length)+'</span>'+text.slice(idx+q.length);
 }
 
 function selectSuggestion(val){
-  document.getElementById('searchInput').value=val;
-  document.getElementById('clearBtn').classList.remove('hidden');
-  currentSelection=val;
-  // Update dropdown too
-  const dd=document.getElementById('dropdownSelect');
-  dd.value=val;
-  hideSuggestions();
-  renderResults();
+document.getElementById('searchBox').value=val;
+document.getElementById('suggestions').classList.add('hidden');
+// sync dropdown
+const sel=document.getElementById('dropdownSelect');
+sel.value=val;
+renderResult(val);
 }
 
-function hideSuggestions(){document.getElementById('suggestions').classList.add('hidden')}
+function clearSearch(){
+document.getElementById('searchBox').value='';
+document.getElementById('suggestions').classList.add('hidden');
+const sel=document.getElementById('dropdownSelect');
+if(sel.value)renderResult(sel.value);
+}
 
+function renderResult(val){
+const el=document.getElementById('results');
+el.innerHTML='';
+if(currentTab==='student')renderStudent(val,el);
+else if(currentTab==='class')renderClass(val,el);
+else if(currentTab==='room')renderRoom(val,el);
+else if(currentTab==='teacher')renderTeacher(val,el);
+el.classList.add('fade-in');
+}
+
+function renderStudent(name,el){
+const records=studentMap[name];
+if(!records||!records.length){el.innerHTML=noResult();return;}
+const d=records[0];
+el.innerHTML=`
+<div class="bg-white rounded-2xl border border-g-200 overflow-hidden shadow-sm">
+<div class="bg-g-600 text-white px-4 py-3">
+<div class="font-700 text-lg">${d.studentName}</div>
+<div class="text-g-100 text-xs mt-0.5">Lớp ${d.realClass}</div>
+</div>
+<div class="divide-y divide-g-100">
+${slotCard('Tiết 1-2',d.s1)}
+${slotCard('Tiết 3-4',d.s2)}
+</div>
+</div>`;
+}
+
+function slotCard(period,s){
+return`<div class="px-4 py-3 flex items-start gap-3">
+<div class="bg-g-100 text-g-700 rounded-lg px-2 py-1 text-xs font-700 whitespace-nowrap mt-0.5">${period}</div>
+<div class="flex-1 min-w-0">
+<div class="font-700 text-g-900">${s.subject||'—'}</div>
+<div class="text-xs text-gray-500 mt-0.5 space-y-0.5">
+<div>👨‍🏫 ${s.teacher||'—'}</div>
+<div>📋 Mã lớp: <span class="font-600 text-g-700">${s.code||'—'}</span></div>
+<div>📍 Phòng: <span class="font-600 text-g-700">${s.room||'—'}</span></div>
+</div>
+</div>
+</div>`;
+}
+
+function renderClass(code,el){
+const records=classMap[code];
+if(!records||!records.length){el.innerHTML=noResult();return;}
+const r0=records[0];
+const studentList=[...new Set(records.map(r=>r.studentName))].sort();
+el.innerHTML=`
+<div class="bg-white rounded-2xl border border-g-200 overflow-hidden shadow-sm">
+<div class="bg-g-600 text-white px-4 py-3">
+<div class="font-700 text-lg">${code} — ${r0.slot.subject}</div>
+<div class="text-g-100 text-xs mt-0.5">👨‍🏫 ${r0.slot.teacher} · 📍 ${r0.slot.room} · ${r0.period}</div>
+</div>
+<div class="px-4 py-3">
+<div class="text-xs font-600 text-g-700 mb-2">${studentList.length} học sinh</div>
+<div class="flex flex-wrap gap-1.5">
+${studentList.map((s,i)=>`<span class="inline-block bg-g-50 border border-g-200 rounded-lg px-2 py-1 text-xs">${i+1}. ${s}</span>`).join('')}
+</div>
+</div>
+</div>`;
+}
+
+function renderRoom(room,el){
+const records=roomMap[room];
+if(!records||!records.length){el.innerHTML=noResult();return;}
+// group by period+teacher
+const groups={};
+records.forEach(r=>{
+const key=r.period+'|'+r.slot.teacher+'|'+r.slot.code+'|'+r.slot.subject;
+if(!groups[key])groups[key]={period:r.period,teacher:r.slot.teacher,code:r.slot.code,subject:r.slot.subject,students:new Set()};
+groups[key].students.add(r.studentName);
+});
+el.innerHTML=`
+<div class="bg-white rounded-2xl border border-g-200 overflow-hidden shadow-sm">
+<div class="bg-g-600 text-white px-4 py-3">
+<div class="font-700 text-lg">📍 Phòng ${room}</div>
+</div>
+<div class="divide-y divide-g-100">
+${Object.values(groups).map(g=>`
+<div class="px-4 py-3">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-g-100 text-g-700 rounded-lg px-2 py-0.5 text-xs font-700">${g.period}</span>
+<span class="font-600 text-sm text-g-900">${g.subject} (${g.code})</span>
+</div>
+<div class="text-xs text-gray-500">👨‍🏫 ${g.teacher} · ${g.students.size} học sinh</div>
+</div>`).join('')}
+</div>
+</div>`;
+}
+
+function renderTeacher(name,el){
+const records=teacherMap[name];
+if(!records||!records.length){el.innerHTML=noResult();return;}
+const groups={};
+records.forEach(r=>{
+const key=r.period+'|'+r.slot.code;
+if(!groups[key])groups[key]={period:r.period,code:r.slot.code,subject:r.slot.subject,room:r.slot.room,students:new Set()};
+groups[key].students.add(r.studentName);
+});
+el.innerHTML=`
+<div class="bg-white rounded-2xl border border-g-200 overflow-hidden shadow-sm">
+<div class="bg-g-600 text-white px-4 py-3">
+<div class="font-700 text-lg">👨‍🏫 ${name}</div>
+</div>
+<div class="divide-y divide-g-100">
+${Object.values(groups).map(g=>`
+<div class="px-4 py-3">
+<div class="flex items-center gap-2 flex-wrap mb-1">
+<span class="bg-g-100 text-g-700 rounded-lg px-2 py-0.5 text-xs font-700">${g.period}</span>
+<span class="font-600 text-sm text-g-900">${g.subject} — ${g.code}</span>
+<span class="text-xs text-gray-400">📍 ${g.room}</span>
+</div>
+<div class="text-xs text-gray-500">${g.students.size} học sinh</div>
+<div class="flex flex-wrap gap-1 mt-1">
+${[...g.students].sort().map((s,i)=>`<span class="inline-block bg-g-50 border border-g-200 rounded px-1.5 py-0.5 text-xs">${i+1}. ${s}</span>`).join('')}
+</div>
+</div>`).join('')}
+</div>
+</div>`;
+}
+
+function noResult(){return'<div class="text-center text-gray-400 py-8 text-sm">Không tìm thấy kết quả</div>';}
+
+// Close suggestions on outside click
 document.addEventListener('click',e=>{
-  if(!e.target.closest('#searchInput')&&!e.target.closest('#suggestions'))hideSuggestions();
+if(!e.target.closest('#searchBox')&&!e.target.closest('#suggestions')){
+document.getElementById('suggestions').classList.add('hidden');
+}
 });
 
-function renderResults(){
-  const el=document.getElementById('results');
-  if(!currentSelection){el.innerHTML='<p class="text-center text-xs text-[#94a3b8] py-8">Chọn mục để xem</p>';return}
-
-  let html='';
-  if(currentTab==='student'){
-    const list=students.filter(s=>s.name===currentSelection);
-    if(!list.length){el.innerHTML=noResult();return}
-    list.forEach(st=>{
-      html+=`<div class="bg-white rounded-xl p-3 card-hover fade-in border border-[#e2e8f0]">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="w-7 h-7 rounded-full bg-[#dbeafe] flex items-center justify-center text-[10px] font-bold text-[#2563eb]">${st.name.charAt(0)}</span>
-          <div><div class="font-semibold text-xs text-[#1e3a5f]">${st.name}</div><div class="text-[10px] text-[#64748b]">Lớp ${st.realClass}</div></div>
-        </div>
-        <div class="space-y-1.5">${st.sessions.map(s=>`
-          <div class="flex items-center gap-2 bg-[#f8fafc] rounded-lg px-2.5 py-1.5 text-[11px]">
-            <span class="font-medium text-[#2563eb] w-14 shrink-0">${s.period}</span>
-            <span class="font-semibold text-[#1e3a5f] w-8">${s.subject}</span>
-            <span class="text-[#64748b] flex-1 truncate">${s.teacher}</span>
-            <span class="text-[10px] bg-[#dbeafe] text-[#2563eb] px-1.5 py-0.5 rounded font-medium">${s.classCode}</span>
-            <span class="text-[10px] text-[#64748b]">${s.room}</span>
-          </div>
-        `).join('')}</div>
-      </div>`;
-    });
-  }else if(currentTab==='class'){
-    const info=classMap[currentSelection];
-    if(!info){el.innerHTML=noResult();return}
-    html+=`<div class="bg-white rounded-xl p-3 card-hover fade-in border border-[#e2e8f0]">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="w-7 h-7 rounded-full bg-[#dbeafe] flex items-center justify-center text-[10px] font-bold text-[#2563eb]">${currentSelection.charAt(0)}</span>
-        <div>
-          <div class="font-semibold text-xs text-[#1e3a5f]">${currentSelection}</div>
-          <div class="text-[10px] text-[#64748b]">${info.subject} • ${info.teacher} • Phòng ${info.room}</div>
-        </div>
-        <span class="ml-auto text-[10px] bg-[#dbeafe] text-[#2563eb] px-2 py-0.5 rounded-full font-medium">${info.students.length} HS</span>
-      </div>
-      <div class="space-y-1">${info.students.map((s,i)=>`
-        <div class="flex items-center gap-2 bg-[#f8fafc] rounded-lg px-2.5 py-1.5 text-[11px]">
-          <span class="text-[#94a3b8] w-5 text-right">${i+1}.</span>
-          <span class="font-medium text-[#1e3a5f] flex-1">${s.name}</span>
-          <span class="text-[10px] text-[#64748b]">${s.realClass}</span>
-          <span class="text-[10px] text-[#2563eb]">${s.period}</span>
-        </div>
-      `).join('')}</div>
-    </div>`;
-  }else if(currentTab==='room'){
-    const info=roomMap[currentSelection];
-    if(!info){el.innerHTML=noResult();return}
-    html+=`<div class="bg-white rounded-xl p-3 card-hover fade-in border border-[#e2e8f0]">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="w-7 h-7 rounded-full bg-[#dbeafe] flex items-center justify-center text-[10px] font-bold text-[#2563eb]"><i data-lucide="map-pin" style="width:12px;height:12px"></i></span>
-        <div class="font-semibold text-xs text-[#1e3a5f]">Phòng ${currentSelection}</div>
-      </div>
-      <div class="space-y-1">${info.map(s=>`
-        <div class="flex items-center gap-2 bg-[#f8fafc] rounded-lg px-2.5 py-1.5 text-[11px]">
-          <span class="font-medium text-[#2563eb] w-14 shrink-0">${s.period}</span>
-          <span class="font-medium text-[#1e3a5f] flex-1">${s.teacher}</span>
-          <span class="text-[10px] bg-[#dbeafe] text-[#2563eb] px-1.5 py-0.5 rounded font-medium">${s.classCode}</span>
-          <span class="text-[10px] text-[#64748b]">${s.studentCount} HS</span>
-        </div>
-      `).join('')}</div>
-    </div>`;
-  }else{
-    const info=teacherMap[currentSelection];
-    if(!info){el.innerHTML=noResult();return}
-    // Group by period
-    const byPeriod={};
-    info.forEach(s=>{
-      if(!byPeriod[s.period])byPeriod[s.period]={subject:s.subject,classCode:s.classCode,room:s.room,students:[]};
-      byPeriod[s.period].students.push({name:s.studentName,realClass:s.realClass});
-    });
-    html+=`<div class="bg-white rounded-xl p-3 card-hover fade-in border border-[#e2e8f0]">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="w-7 h-7 rounded-full bg-[#dbeafe] flex items-center justify-center text-[10px] font-bold text-[#2563eb]">${currentSelection.charAt(0)}</span>
-        <div class="font-semibold text-xs text-[#1e3a5f]">${currentSelection}</div>
-      </div>
-      <div class="space-y-2">${Object.entries(byPeriod).map(([p,d])=>`
-        <div class="bg-[#f8fafc] rounded-lg p-2.5">
-          <div class="flex items-center gap-2 mb-1.5 text-[11px]">
-            <span class="font-medium text-[#2563eb]">${p}</span>
-            <span class="font-semibold text-[#1e3a5f]">${d.subject}</span>
-            <span class="text-[10px] bg-[#dbeafe] text-[#2563eb] px-1.5 py-0.5 rounded font-medium">${d.classCode}</span>
-            <span class="text-[10px] text-[#64748b]">${d.room}</span>
-            <span class="ml-auto text-[10px] text-[#64748b]">${d.students.length} HS</span>
-          </div>
-          <div class="space-y-0.5">${d.students.map((s,i)=>`
-            <div class="text-[10px] text-[#64748b] pl-2">${i+1}. ${s.name} <span class="text-[#94a3b8]">(${s.realClass})</span></div>
-          `).join('')}</div>
-        </div>
-      `).join('')}</div>
-    </div>`;
-  }
-  el.innerHTML=html;
-  lucide.createIcons();
-}
-
-function noResult(){return '<p class="text-center text-xs text-[#94a3b8] py-8">Không tìm thấy kết quả</p>'}
-
+// Export wallpaper
 function exportWallpaper(){
-  if(!currentSelection){return}
-  const c=document.getElementById('wallpaperCanvas');
-  const ctx=c.getContext('2d');
-  c.width=1080;c.height=1920;
+const sel=document.getElementById('dropdownSelect');
+const val=sel.value;
+if(!val&&currentTab==='student'){return;}
+const canvas=document.getElementById('wallpaperCanvas');
+const ctx=canvas.getContext('2d');
+const W=1080,H=1920;
+canvas.width=W;canvas.height=H;
 
-  // Background
-  const bg=ctx.createLinearGradient(0,0,0,1920);
-  bg.addColorStop(0,'#0f172a');bg.addColorStop(1,'#1e3a5f');
-  ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1920);
+// BG
+const grad=ctx.createLinearGradient(0,0,W,H);
+grad.addColorStop(0,'#f0fdf4');grad.addColorStop(0.5,'#dcfce7');grad.addColorStop(1,'#bbf7d0');
+ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
 
-  // Header
-  ctx.fillStyle='#ffffff';ctx.font='bold 48px "Be Vietnam Pro", sans-serif';
-  ctx.textAlign='center';
-  ctx.fillText('Thời Khóa Biểu Tự Chọn',540,120);
-  ctx.font='24px "Be Vietnam Pro", sans-serif';
-  ctx.fillStyle='#94a3b8';
-  ctx.fillText('Áp dụng từ ngày 4/5/2026',540,165);
+// Header
+ctx.fillStyle='#166534';ctx.font='bold 48px "Be Vietnam Pro",sans-serif';
+ctx.textAlign='center';
+ctx.fillText('Thời Khóa Biểu Tự Chọn 12',W/2,120);
+ctx.font='24px "Be Vietnam Pro",sans-serif';ctx.fillStyle='#15803d';
+ctx.fillText('Áp dụng từ ngày 4/5/2026',W/2,165);
 
-  let y=240;
-  ctx.textAlign='left';
+let y=230;
+ctx.textAlign='left';
 
-  if(currentTab==='student'){
-    const list=students.filter(s=>s.name===currentSelection);
-    list.forEach(st=>{
-      ctx.fillStyle='#60a5fa';ctx.font='bold 36px "Be Vietnam Pro", sans-serif';
-      ctx.fillText(`${st.name} — Lớp ${st.realClass}`,60,y);y+=60;
-      st.sessions.forEach(s=>{
-        ctx.fillStyle='#334155';
-        roundRect(ctx,60,y-20,960,70,12);ctx.fill();
-        ctx.fillStyle='#60a5fa';ctx.font='bold 26px "Be Vietnam Pro", sans-serif';
-        ctx.fillText(s.period,80,y+18);
-        ctx.fillStyle='#ffffff';ctx.font='bold 26px "Be Vietnam Pro", sans-serif';
-        ctx.fillText(s.subject,260,y+18);
-        ctx.fillStyle='#94a3b8';ctx.font='24px "Be Vietnam Pro", sans-serif';
-        ctx.fillText(s.teacher,380,y+18);
-        ctx.fillText(`${s.classCode} • ${s.room}`,760,y+18);
-        y+=85;
-      });
-      y+=20;
-    });
-  }else if(currentTab==='teacher'){
-    const info=teacherMap[currentSelection];
-    if(info){
-      ctx.fillStyle='#60a5fa';ctx.font='bold 36px "Be Vietnam Pro", sans-serif';
-      ctx.fillText(currentSelection,60,y);y+=60;
-      const byP={};
-      info.forEach(s=>{if(!byP[s.period])byP[s.period]={...s,count:1};else byP[s.period].count++});
-      Object.values(byP).forEach(d=>{
-        ctx.fillStyle='#334155';roundRect(ctx,60,y-20,960,70,12);ctx.fill();
-        ctx.fillStyle='#60a5fa';ctx.font='bold 26px "Be Vietnam Pro", sans-serif';
-        ctx.fillText(d.period,80,y+18);
-        ctx.fillStyle='#ffffff';ctx.font='bold 26px "Be Vietnam Pro", sans-serif';
-        ctx.fillText(`${d.subject} — ${d.classCode}`,260,y+18);
-        ctx.fillStyle='#94a3b8';ctx.font='24px "Be Vietnam Pro", sans-serif';
-        ctx.fillText(`${d.room} • ${d.count} HS`,700,y+18);
-        y+=85;
-      });
-    }
-  }else{
-    ctx.fillStyle='#60a5fa';ctx.font='bold 36px "Be Vietnam Pro", sans-serif';
-    ctx.fillText(currentSelection,60,y);y+=60;
-    ctx.fillStyle='#94a3b8';ctx.font='24px "Be Vietnam Pro", sans-serif';
-    ctx.fillText('Chi tiết xem trên ứng dụng',60,y);
-  }
-
-  document.getElementById('wallpaperModal').classList.remove('hidden');
-  document.getElementById('downloadWallpaper').href=c.toDataURL('image/png');
-  lucide.createIcons();
+if(currentTab==='student'){
+const records=studentMap[val];
+if(!records)return;
+const d=records[0];
+ctx.fillStyle='#14532d';ctx.font='bold 40px "Be Vietnam Pro",sans-serif';
+ctx.fillText(d.studentName,80,y);y+=35;
+ctx.font='24px "Be Vietnam Pro",sans-serif';ctx.fillStyle='#16a34a';
+ctx.fillText('Lớp '+d.realClass,80,y);y+=60;
+[{p:'Tiết 1-2',s:d.s1},{p:'Tiết 3-4',s:d.s2}].forEach(item=>{
+ctx.fillStyle='#16a34a';ctx.fillRect(60,y-28,W-120,130);
+ctx.beginPath();ctx.roundRect(60,y-28,W-120,130,16);ctx.fill();
+ctx.fillStyle='#fff';ctx.font='bold 28px "Be Vietnam Pro",sans-serif';
+ctx.fillText(item.p+' — '+item.s.subject,90,y+5);
+ctx.font='22px "Be Vietnam Pro",sans-serif';
+ctx.fillText('GV: '+item.s.teacher,90,y+40);
+ctx.fillText('Mã lớp: '+item.s.code+'  ·  Phòng: '+item.s.room,90,y+72);
+y+=160;
+});
+} else if(currentTab==='teacher'){
+const records=teacherMap[val];
+if(!records)return;
+ctx.fillStyle='#14532d';ctx.font='bold 40px "Be Vietnam Pro",sans-serif';
+ctx.fillText('GV: '+val,80,y);y+=60;
+const groups={};
+records.forEach(r=>{
+const key=r.period+'|'+r.slot.code;
+if(!groups[key])groups[key]={period:r.period,code:r.slot.code,subject:r.slot.subject,room:r.slot.room,count:0};
+groups[key].count++;
+});
+Object.values(groups).forEach(g=>{
+ctx.fillStyle='#16a34a';
+ctx.beginPath();ctx.roundRect(60,y-28,W-120,100,16);ctx.fill();
+ctx.fillStyle='#fff';ctx.font='bold 26px "Be Vietnam Pro",sans-serif';
+ctx.fillText(g.period+' — '+g.subject+' ('+g.code+')',90,y+5);
+ctx.font='22px "Be Vietnam Pro",sans-serif';
+ctx.fillText('Phòng: '+g.room+'  ·  '+g.count+' HS',90,y+40);
+y+=130;
+});
+} else {
+ctx.fillStyle='#14532d';ctx.font='bold 36px "Be Vietnam Pro",sans-serif';
+ctx.fillText(currentTab==='class'?'Mã lớp: '+val:'Phòng: '+val,80,y);y+=50;
+const src=currentTab==='class'?classMap:roomMap;
+const records=src[val];
+if(records){
+const seen=new Set();
+records.forEach(r=>{
+const key=r.period;
+if(seen.has(key))return;seen.add(key);
+ctx.fillStyle='#16a34a';
+ctx.beginPath();ctx.roundRect(60,y-28,W-120,90,16);ctx.fill();
+ctx.fillStyle='#fff';ctx.font='bold 24px "Be Vietnam Pro",sans-serif';
+ctx.fillText(r.period+' — '+r.slot.subject+' ('+r.slot.code+')',90,y);
+ctx.font='20px "Be Vietnam Pro",sans-serif';
+ctx.fillText('GV: '+r.slot.teacher+(currentTab==='class'?' · Phòng: '+r.slot.room:''),90,y+32);
+y+=120;
+});
+}
 }
 
-function roundRect(ctx,x,y,w,h,r){
-  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
-  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+// Footer
+ctx.textAlign='center';ctx.fillStyle='#86efac';ctx.font='20px "Be Vietnam Pro",sans-serif';
+ctx.fillText('TKB Tự Chọn — NK Khoa Hưng',W/2,H-60);
+
+const link=document.createElement('a');
+link.download='tkb_'+val.replace(/\s+/g,'_')+'.png';
+link.href=canvas.toDataURL('image/png');
+link.click();
 }
 
-function closeWallpaper(){document.getElementById('wallpaperModal').classList.add('hidden')}
-
+// Export CSV
 function exportCSV(){
-  let csv='\uFEFF';// BOM for Excel
-  csv+='Lớp thực,Họ tên,Tiết,Môn,Giáo viên,Mã lớp,Phòng\n';
-  rawData.forEach(e=>{
-    e.sessions.forEach(s=>{
-      csv+=`"${e.realClass}","${e.name}","${s.period}","${s.subject}","${s.teacher}","${s.classCode}","${s.room}"\n`;
-    });
-  });
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='tkb-tuchon-lop12.csv';
-  a.click();URL.revokeObjectURL(url);
+let csv='\uFEFF'+'Lớp thực,Học sinh,Môn T1-2,GV T1-2,Mã lớp T1-2,Phòng T1-2,Môn T3-4,GV T3-4,Mã lớp T3-4,Phòng T3-4\n';
+allData.forEach(d=>{
+csv+=[d.realClass,d.studentName,d.s1.subject,d.s1.teacher,d.s1.code,d.s1.room,d.s2.subject,d.s2.teacher,d.s2.code,d.s2.room].map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')+'\n';
+});
+const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+const link=document.createElement('a');
+link.href=URL.createObjectURL(blob);
+link.download='tkb_tu_chon_12.csv';
+link.click();
 }
 
-loadData();
+// Init
+async function init(){
+try{
+const resp=await fetch(CSV_URL);
+if(!resp.ok)throw new Error('Fetch failed');
+const text=await resp.text();
+allData=parseCSV(text);
+buildIndexes();
+document.getElementById('loading').classList.add('hidden');
+document.getElementById('main').classList.remove('hidden');
+renderStats();
+switchTab('student');
+lucide.createIcons();
+}catch(e){
+document.getElementById('loading').innerHTML='<div class="text-red-500 text-center"><p class="font-600">Lỗi tải dữ liệu</p><p class="text-sm mt-2">Vui lòng kiểm tra kết nối mạng và thử lại</p><button onclick="init()" class="mt-3 px-4 py-2 bg-g-600 text-white rounded-lg text-sm">Thử lại</button></div>';
+}
+}
+
+// Element SDK
+const defaultConfig={
+main_title:'Thời Khóa Biểu Tự Chọn Lớp 12',
+apply_date:'Áp dụng từ ngày 4/5/2026',
+background_color:'#f0fdf4',
+surface_color:'#ffffff',
+text_color:'#166534',
+primary_action:'#16a34a',
+secondary_action:'#15803d',
+font_family:'Be Vietnam Pro',
+font_size:16
+};
+
+window.elementSdk.init({
+defaultConfig,
+onConfigChange:async(config)=>{
+const t=document.getElementById('mainTitle');
+if(t)t.textContent=config.main_title||defaultConfig.main_title;
+const d=document.getElementById('applyDate');
+if(d)d.textContent=config.apply_date||defaultConfig.apply_date;
+document.querySelectorAll('.bg-g-600').forEach(el=>el.style.backgroundColor=config.primary_action||defaultConfig.primary_action);
+document.body.style.fontFamily=(config.font_family||defaultConfig.font_family)+', sans-serif';
+},
+mapToCapabilities:(config)=>({
+recolorables:[
+{get:()=>config.background_color||defaultConfig.background_color,set:v=>{config.background_color=v;window.elementSdk.setConfig({background_color:v})}},
+{get:()=>config.surface_color||defaultConfig.surface_color,set:v=>{config.surface_color=v;window.elementSdk.setConfig({surface_color:v})}},
+{get:()=>config.text_color||defaultConfig.text_color,set:v=>{config.text_color=v;window.elementSdk.setConfig({text_color:v})}},
+{get:()=>config.primary_action||defaultConfig.primary_action,set:v=>{config.primary_action=v;window.elementSdk.setConfig({primary_action:v})}},
+{get:()=>config.secondary_action||defaultConfig.secondary_action,set:v=>{config.secondary_action=v;window.elementSdk.setConfig({secondary_action:v})}}
+],
+borderables:[],
+fontEditable:{get:()=>config.font_family||defaultConfig.font_family,set:v=>{config.font_family=v;window.elementSdk.setConfig({font_family:v})}},
+fontSizeable:{get:()=>config.font_size||defaultConfig.font_size,set:v=>{config.font_size=v;window.elementSdk.setConfig({font_size:v})}}
+}),
+mapToEditPanelValues:(config)=>new Map([
+['main_title',config.main_title||defaultConfig.main_title],
+['apply_date',config.apply_date||defaultConfig.apply_date]
+])
+});
+
+init();
+lucide.createIcons();
 </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f458ba1f4af09c8',t:'MTc3NzU0MTYxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f45a5d0d0250701',t:'MTc3NzU0MjY4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
