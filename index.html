@@ -1,604 +1,596 @@
-<!doctype html>
-<html lang="vi" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thời Khóa Biểu Tự Chọn Lớp 12</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { main: ['Be Vietnam Pro', 'sans-serif'] },
-          colors: {
-            leaf: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 500:'#22c55e', 600:'#16a34a', 700:'#15803d', 800:'#166534', 900:'#14532d' }
-          }
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { 
+    Home, Search, Download, Image as ImageIcon, Users, BookOpen, 
+    MapPin, User, LayoutGrid, Calendar, ArrowLeft, RefreshCw
+} from 'lucide-react';
+
+export default function App() {
+    // ================= STATE MANAGEMENT =================
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState('hocsinh'); // hocsinh, malop, phong, giaovien
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedItem, setSelectedItem] = useState('');
+    const [isExporting, setIsExporting] = useState(false);
+    const wallpaperRef = useRef(null);
+
+    // ================= FETCH & PARSE DATA =================
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Chuyển đổi link pubhtml thành pub?output=csv để lấy dữ liệu thô
+                const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFBaheWuorYlfWoVnK9YfCsHMOnuD2T3snqgD2SjISW_91fxr0d4KphUCJsmJyFhMFKNXFKJJWn3Gb/pub?output=csv";
+                const response = await fetch(sheetUrl);
+                
+                if (!response.ok) throw new Error("Không thể tải dữ liệu từ Google Sheet.");
+                
+                const csvText = await response.text();
+                const parsedData = parseCSV(csvText);
+                
+                // Bỏ qua hàng tiêu đề đầu tiên
+                setData(parsedData.slice(1));
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+                setError("Lỗi kết nối dữ liệu. Vui lòng thử lại sau.");
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+
+        // Tải thư viện html2canvas động để xuất ảnh
+        if (!window.html2canvas) {
+            const script = document.createElement('script');
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+            document.head.appendChild(script);
         }
-      }
-    }
-  </script>
-  <style>
-    * { font-family: 'Be Vietnam Pro', sans-serif; }
-    .tab-active { background: #16a34a; color: white; }
-    .fade-in { animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-    .card-hover { transition: all 0.2s; }
-    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(22,163,74,0.15); }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: #86efac; border-radius: 3px; }
-    #export-canvas { position: fixed; left: -9999px; top: 0; }
-  </style>
-  <style>body { box-sizing: border-box; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
- </head>
- <body class="h-full bg-leaf-50 text-gray-800">
-  <div id="app" class="h-full w-full overflow-auto">
-   <!-- Header -->
-   <header class="bg-white border-b border-leaf-200 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-     <div class="flex items-center gap-2">
-      <a href="https://tkbnkhoahung.github.io/tkbnk2526hs/" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-leaf-100 text-leaf-700 hover:bg-leaf-200 transition"> <i data-lucide="home" class="w-5 h-5"></i> </a>
-      <div>
-       <h1 id="page-title" class="text-lg font-bold text-leaf-800 leading-tight">Thời Khóa Biểu Tự Chọn Lớp 12</h1>
-       <p class="text-xs text-leaf-600">Áp dụng từ ngày 4/5/2026</p>
-      </div>
-     </div><button onclick="exportWallpaper()" class="flex items-center gap-1 px-3 py-2 bg-leaf-600 text-white rounded-lg text-sm font-medium hover:bg-leaf-700 transition"> <i data-lucide="image" class="w-4 h-4"></i> <span class="hidden sm:inline">Xuất hình</span> </button>
-    </div>
-   </header><!-- Stats -->
-   <div id="stats-section" class="max-w-5xl mx-auto px-4 py-3">
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-     <div class="bg-white rounded-xl p-3 border border-leaf-200 text-center">
-      <div class="text-2xl font-bold text-leaf-700" id="stat-students">
-       -
-      </div>
-      <div class="text-xs text-gray-500">
-       Học sinh
-      </div>
-     </div>
-     <div class="bg-white rounded-xl p-3 border border-leaf-200 text-center">
-      <div class="text-2xl font-bold text-leaf-700" id="stat-classes">
-       -
-      </div>
-      <div class="text-xs text-gray-500">
-       Mã lớp
-      </div>
-     </div>
-     <div class="bg-white rounded-xl p-3 border border-leaf-200 text-center">
-      <div class="text-2xl font-bold text-leaf-700" id="stat-rooms">
-       -
-      </div>
-      <div class="text-xs text-gray-500">
-       Phòng
-      </div>
-     </div>
-     <div class="bg-white rounded-xl p-3 border border-leaf-200 text-center">
-      <div class="text-2xl font-bold text-leaf-700" id="stat-teachers">
-       -
-      </div>
-      <div class="text-xs text-gray-500">
-       Giáo viên
-      </div>
-     </div>
-    </div>
-   </div><!-- Tabs -->
-   <div class="max-w-5xl mx-auto px-4">
-    <div class="flex gap-1 bg-white rounded-xl p-1 border border-leaf-200 overflow-x-auto">
-     <button onclick="switchTab('student')" id="tab-student" class="tab-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap tab-active">Học sinh</button> <button onclick="switchTab('class')" id="tab-class" class="tab-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-gray-600 hover:bg-leaf-100">Mã lớp</button> <button onclick="switchTab('room')" id="tab-room" class="tab-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-gray-600 hover:bg-leaf-100">Phòng</button> <button onclick="switchTab('teacher')" id="tab-teacher" class="tab-btn flex-1 px-3 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-gray-600 hover:bg-leaf-100">Giáo viên</button>
-    </div>
-   </div><!-- Search + Dropdown -->
-   <div class="max-w-5xl mx-auto px-4 py-3">
-    <div class="flex gap-2">
-     <div class="relative flex-1">
-      <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i> <input id="search-input" type="text" placeholder="Tìm kiếm..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-leaf-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-leaf-400 focus:border-transparent" oninput="onSearch(this.value)"> <button id="clear-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" onclick="clearSearch()"> <i data-lucide="x" class="w-4 h-4"></i> </button> <!-- Suggestions -->
-      <div id="suggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-leaf-200 rounded-xl shadow-lg max-h-60 overflow-auto z-40"></div>
-     </div><select id="dropdown-select" onchange="onDropdownChange(this.value)" class="px-3 py-2.5 rounded-xl border border-leaf-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-leaf-400 max-w-[180px]"> <option value="">Chọn...</option> </select>
-    </div>
-   </div><!-- Content -->
-   <div id="content-area" class="max-w-5xl mx-auto px-4 pb-6 fade-in">
-    <div id="loading" class="text-center py-12">
-     <div class="inline-block w-8 h-8 border-3 border-leaf-300 border-t-leaf-600 rounded-full animate-spin"></div>
-     <p class="mt-3 text-sm text-gray-500">Đang tải dữ liệu...</p>
-    </div>
-    <div id="results" class="hidden"></div>
-   </div><!-- Export CSV -->
-   <div class="max-w-5xl mx-auto px-4 pb-8">
-    <button onclick="exportCSV()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-leaf-200 rounded-xl text-sm font-medium text-leaf-700 hover:bg-leaf-50 transition"> <i data-lucide="download" class="w-4 h-4"></i> Xuất CSV/Excel toàn bộ thông tin </button>
-   </div>
-  </div>
-  <canvas id="export-canvas" width="1080" height="1920"></canvas>
-  <script>
-// Global state
-let allData = [];
-let currentTab = 'student';
-let students = [], classes = [], rooms = [], teachers = [];
+    }, []);
 
-const SHEET_ID = '14QJ8ALOZYFfLpuMsIaMRTzmMgvES8EZQsWSJeyqW160';
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+    // Hàm parse CSV đơn giản
+    const parseCSV = (str) => {
+        const rows = [];
+        let row = [];
+        let curr = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i];
+            if (char === '"' && str[i+1] === '"') {
+                curr += '"'; i++;
+            } else if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                row.push(curr.trim()); curr = '';
+            } else if (char === '\n' && !inQuotes) {
+                row.push(curr.trim()); rows.push(row); row = []; curr = '';
+            } else if (char !== '\r') {
+                curr += char;
+            }
+        }
+        if (curr || row.length) {
+            row.push(curr.trim()); rows.push(row);
+        }
+        return rows.filter(r => r.length > 1); // Loại bỏ dòng trống
+    };
 
-// Parse data
-async function fetchData() {
-  try {
-    const res = await fetch(SHEET_URL);
-    const text = await res.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
-    const rows = json.table.rows;
-    const cols = json.table.cols;
+    // ================= DATA PROCESSING & MEMOIZATION =================
     
-    // Skip header row (first row is column names)
-    allData = [];
-    for (let i = 1; i < rows.length; i++) {
-      const r = rows[i];
-      if (!r.c || !r.c[0]) continue;
-      const cells = r.c.map(c => c ? (c.v || '').toString().trim() : '');
-      if (!cells[0]) continue;
-      
-      // Parse: lớp thực, tên HS, môn1, GV1, mã lớp1, phòng1, môn2, GV2, mã lớp2, phòng2
-      const entry = {
-        realClass: cells[0] || '',
-        studentName: cells[1] || '',
-        subject1: cells[2] || '',
-        teacher1: cells[3] || '',
-        classCode1: cells[4] || '',
-        room1: cells[5] || '',
-        subject2: cells[6] || '',
-        teacher2: cells[7] || '',
-        classCode2: cells[8] || '',
-        room2: cells[9] || ''
-      };
-      if (entry.studentName) allData.push(entry);
-    }
+    // Tạo danh sách duy nhất cho các Dropdown tùy theo tab
+    const lists = useMemo(() => {
+        // Đảm bảo trả về đúng các key: hs, malop, phong, gv ngay cả khi mảng rỗng
+        if (!data || !data.length) return { hs: [], malop: [], phong: [], gv: [] };
+        
+        const hs = [...new Set(data.map(r => r[1]).filter(Boolean))].sort();
+        const ml1 = data.map(r => r[4]).filter(Boolean);
+        const ml2 = data.map(r => r[8]).filter(Boolean);
+        const malop = [...new Set([...ml1, ...ml2])].sort();
+        
+        const p1 = data.map(r => r[5]).filter(Boolean);
+        const p2 = data.map(r => r[9]).filter(Boolean);
+        const phong = [...new Set([...p1, ...p2])].sort();
+        
+        const gv1 = data.map(r => r[3]).filter(Boolean);
+        const gv2 = data.map(r => r[7]).filter(Boolean);
+        const gv = [...new Set([...gv1, ...gv2])].sort();
 
-    // Build indexes
-    const sSet = new Set(), cSet = new Set(), rSet = new Set(), tSet = new Set();
-    allData.forEach(d => {
-      sSet.add(d.studentName);
-      if (d.classCode1) cSet.add(d.classCode1);
-      if (d.classCode2) cSet.add(d.classCode2);
-      if (d.room1) rSet.add(d.room1);
-      if (d.room2) rSet.add(d.room2);
-      if (d.teacher1) tSet.add(d.teacher1);
-      if (d.teacher2) tSet.add(d.teacher2);
-    });
-    students = [...sSet].sort();
-    classes = [...cSet].sort();
-    rooms = [...rSet].sort();
-    teachers = [...tSet].sort();
+        return { hs, malop, phong, gv };
+    }, [data]);
 
-    // Stats
-    document.getElementById('stat-students').textContent = students.length;
-    document.getElementById('stat-classes').textContent = classes.length;
-    document.getElementById('stat-rooms').textContent = rooms.length;
-    document.getElementById('stat-teachers').textContent = teachers.length;
+    // Thống kê tổng quan
+    const stats = useMemo(() => {
+        if (!data || !data.length) return { hs: 0, lop: 0, phong: 0, gv: 0 };
+        return {
+            hs: lists.hs?.length || 0,
+            lop: [...new Set(data.map(r => r[0]).filter(Boolean))].length,
+            phong: lists.phong?.length || 0,
+            gv: lists.gv?.length || 0
+        };
+    }, [lists, data]);
 
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('results').style.display = 'block';
+    // Đặt mặc định người đầu tiên khi đổi tab
+    useEffect(() => {
+        setSearchTerm('');
+        if (activeTab === 'hocsinh' && lists.hs?.length) setSelectedItem(lists.hs[0]);
+        else if (activeTab === 'malop' && lists.malop?.length) setSelectedItem(lists.malop[0]);
+        else if (activeTab === 'phong' && lists.phong?.length) setSelectedItem(lists.phong[0]);
+        else if (activeTab === 'giaovien' && lists.gv?.length) setSelectedItem(lists.gv[0]);
+        else setSelectedItem('');
+    }, [activeTab, lists]);
+
+    // Xử lý tìm kiếm
+    const handleSearchChange = (e) => {
+        const val = e.target.value;
+        setSearchTerm(val);
+        
+        // Cập nhật dropdown nếu tìm thấy khớp hoàn toàn
+        let targetList = [];
+        if (activeTab === 'hocsinh') targetList = lists.hs || [];
+        else if (activeTab === 'malop') targetList = lists.malop || [];
+        else if (activeTab === 'phong') targetList = lists.phong || [];
+        else if (activeTab === 'giaovien') targetList = lists.gv || [];
+
+        const exactMatch = targetList.find(item => item.toLowerCase() === val.toLowerCase());
+        if (exactMatch) {
+            setSelectedItem(exactMatch);
+        }
+    };
+
+    // Xử lý nút xóa tìm kiếm
+    const clearSearch = () => {
+        setSearchTerm('');
+        if (activeTab === 'hocsinh' && lists.hs) setSelectedItem(lists.hs[0] || '');
+        if (activeTab === 'malop' && lists.malop) setSelectedItem(lists.malop[0] || '');
+        if (activeTab === 'phong' && lists.phong) setSelectedItem(lists.phong[0] || '');
+        if (activeTab === 'giaovien' && lists.gv) setSelectedItem(lists.gv[0] || '');
+    };
+
+    // ================= EXPORT FUNCTIONS =================
+    const exportToImage = async () => {
+        if (!wallpaperRef.current || !window.html2canvas) return;
+        setIsExporting(true);
+        try {
+            const canvas = await window.html2canvas(wallpaperRef.current, {
+                scale: 2, // Tăng chất lượng ảnh
+                backgroundColor: '#f0fdf4', // Tông xanh nhạt
+                useCORS: true
+            });
+            const link = document.createElement('a');
+            link.download = `TKB_${activeTab}_${selectedItem.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (err) {
+            console.error("Lỗi xuất ảnh:", err);
+            alert("Không thể xuất ảnh. Vui lòng thử lại.");
+        }
+        setIsExporting(false);
+    };
+
+    const exportToCSV = () => {
+        if (!data || !data.length) return;
+        // Thêm Header
+        let csvContent = "Lop Thuc,Ten Hoc Sinh,Mon T1-2,GV T1-2,Ma Lop T1-2,Phong T1-2,Mon T3-4,GV T3-4,Ma Lop T3-4,Phong T3-4\n";
+        data.forEach(row => {
+            const cleanRow = row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`);
+            csvContent += cleanRow.join(",") + "\n";
+        });
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // \uFEFF cho UTF-8 BOM Excel
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "ThoiKhoaBieu_ToanTruong.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // ================= RENDER HELPERS =================
     
-    populateDropdown();
-    // Show first item by default
-    if (students.length > 0) {
-      document.getElementById('dropdown-select').value = students[0];
-      showResult(students[0]);
-    }
-  } catch(e) {
-    document.getElementById('loading').innerHTML = `<p class="text-red-500 text-sm">Lỗi tải dữ liệu. Vui lòng thử lại.</p>`;
-    console.error(e);
-  }
-}
+    // Lấy danh sách đang active
+    const getActiveList = () => {
+        switch(activeTab) {
+            case 'hocsinh': return lists.hs || [];
+            case 'malop': return lists.malop || [];
+            case 'phong': return lists.phong || [];
+            case 'giaovien': return lists.gv || [];
+            default: return [];
+        }
+    };
 
-function populateDropdown() {
-  const sel = document.getElementById('dropdown-select');
-  let list = [];
-  if (currentTab === 'student') list = students;
-  else if (currentTab === 'class') list = classes;
-  else if (currentTab === 'room') list = rooms;
-  else list = teachers;
-  
-  sel.innerHTML = list.map(item => `<option value="${item}">${item}</option>`).join('');
-  if (list.length > 0) {
-    sel.value = list[0];
-    showResult(list[0]);
-  }
-}
-
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    b.classList.remove('tab-active');
-    b.classList.add('text-gray-600', 'hover:bg-leaf-100');
-  });
-  const active = document.getElementById('tab-' + tab);
-  active.classList.add('tab-active');
-  active.classList.remove('text-gray-600', 'hover:bg-leaf-100');
-  
-  const placeholders = { student:'Tìm học sinh...', class:'Tìm mã lớp...', room:'Tìm phòng...', teacher:'Tìm giáo viên...' };
-  document.getElementById('search-input').placeholder = placeholders[tab];
-  document.getElementById('search-input').value = '';
-  document.getElementById('suggestions').classList.add('hidden');
-  document.getElementById('clear-btn').classList.add('hidden');
-  
-  populateDropdown();
-}
-
-function onSearch(val) {
-  const sug = document.getElementById('suggestions');
-  const clearBtn = document.getElementById('clear-btn');
-  if (!val.trim()) {
-    sug.classList.add('hidden');
-    clearBtn.classList.add('hidden');
-    populateDropdown();
-    return;
-  }
-  clearBtn.classList.remove('hidden');
-  
-  let list = [];
-  if (currentTab === 'student') list = students;
-  else if (currentTab === 'class') list = classes;
-  else if (currentTab === 'room') list = rooms;
-  else list = teachers;
-  
-  const q = val.toLowerCase();
-  const matches = list.filter(i => i.toLowerCase().includes(q));
-  
-  if (matches.length === 0) {
-    sug.innerHTML = '<div class="px-4 py-3 text-sm text-gray-400">Không tìm thấy</div>';
-  } else {
-    sug.innerHTML = matches.slice(0, 20).map(m => 
-      `<div class="px-4 py-2.5 text-sm cursor-pointer hover:bg-leaf-50 transition" onclick="selectItem('${m.replace(/'/g, "\\'")}')">${m}</div>`
-    ).join('');
-  }
-  sug.classList.remove('hidden');
-}
-
-function selectItem(val) {
-  document.getElementById('search-input').value = val;
-  document.getElementById('suggestions').classList.add('hidden');
-  document.getElementById('dropdown-select').value = val;
-  showResult(val);
-}
-
-function clearSearch() {
-  document.getElementById('search-input').value = '';
-  document.getElementById('suggestions').classList.add('hidden');
-  document.getElementById('clear-btn').classList.add('hidden');
-  populateDropdown();
-}
-
-function onDropdownChange(val) {
-  if (val) {
-    document.getElementById('search-input').value = '';
-    document.getElementById('suggestions').classList.add('hidden');
-    showResult(val);
-  }
-}
-
-function showResult(val) {
-  const results = document.getElementById('results');
-  let html = '';
-  
-  if (currentTab === 'student') {
-    const entries = allData.filter(d => d.studentName === val);
-    if (entries.length === 0) { results.innerHTML = '<p class="text-center text-gray-400 py-8">Không có dữ liệu</p>'; return; }
-    const e = entries[0];
-    html = `
-      <div class="fade-in">
-        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
-          <div class="bg-leaf-600 px-4 py-3">
-            <h2 class="text-white font-semibold text-lg">${e.studentName}</h2>
-            <p class="text-leaf-100 text-xs">Lớp ${e.realClass}</p>
-          </div>
-          <div class="p-4 space-y-3">
-            ${renderPeriod('Tiết 1-2', e.subject1, e.teacher1, e.classCode1, e.room1)}
-            ${renderPeriod('Tiết 3-4', e.subject2, e.teacher2, e.classCode2, e.room2)}
-          </div>
-        </div>
-      </div>`;
-  } else if (currentTab === 'class') {
-    const entries = allData.filter(d => d.classCode1 === val || d.classCode2 === val);
-    if (entries.length === 0) { results.innerHTML = '<p class="text-center text-gray-400 py-8">Không có dữ liệu</p>'; return; }
-    // Find teacher and room for this class code
-    let teacher = '', room = '', subject = '';
-    for (const e of entries) {
-      if (e.classCode1 === val) { teacher = e.teacher1; room = e.room1; subject = e.subject1; break; }
-      if (e.classCode2 === val) { teacher = e.teacher2; room = e.room2; subject = e.subject2; break; }
-    }
-    const studentList = entries.map(e => `${e.studentName} (${e.realClass})`);
-    html = `
-      <div class="fade-in">
-        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
-          <div class="bg-leaf-600 px-4 py-3">
-            <h2 class="text-white font-semibold text-lg">${val} - ${subject}</h2>
-            <p class="text-leaf-100 text-xs">GV: ${teacher} · Phòng: ${room}</p>
-          </div>
-          <div class="p-4">
-            <p class="text-xs text-gray-500 mb-2">${studentList.length} học sinh</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              ${studentList.map((s,i) => `<div class="text-sm px-3 py-1.5 bg-leaf-50 rounded-lg">${i+1}. ${s}</div>`).join('')}
+    // Giao diện Đang tải
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center text-green-800">
+                <RefreshCw className="w-10 h-10 animate-spin mb-4" />
+                <h2 className="text-xl font-semibold">Đang tải dữ liệu thời khóa biểu...</h2>
             </div>
-          </div>
-        </div>
-      </div>`;
-  } else if (currentTab === 'room') {
-    // Room: who teaches there, which period, how many students
-    const period1 = allData.filter(d => d.room1 === val);
-    const period2 = allData.filter(d => d.room2 === val);
-    html = `<div class="fade-in space-y-3">`;
-    if (period1.length > 0) {
-      const t = period1[0].teacher1;
-      const s = period1[0].subject1;
-      const cc = period1[0].classCode1;
-      html += `
-        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
-          <div class="bg-leaf-600 px-4 py-3">
-            <h2 class="text-white font-semibold">Phòng ${val} - Tiết 1-2</h2>
-          </div>
-          <div class="p-4">
-            <div class="flex items-center gap-3 text-sm">
-              <span class="px-2 py-1 bg-leaf-100 text-leaf-700 rounded-lg font-medium">${s}</span>
-              <span>GV: ${t}</span>
-              <span>Mã: ${cc}</span>
-              <span class="ml-auto text-gray-500">${period1.length} HS</span>
-            </div>
-          </div>
-        </div>`;
+        );
     }
-    if (period2.length > 0) {
-      const t = period2[0].teacher2;
-      const s = period2[0].subject2;
-      const cc = period2[0].classCode2;
-      html += `
-        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
-          <div class="bg-leaf-600 px-4 py-3">
-            <h2 class="text-white font-semibold">Phòng ${val} - Tiết 3-4</h2>
-          </div>
-          <div class="p-4">
-            <div class="flex items-center gap-3 text-sm">
-              <span class="px-2 py-1 bg-leaf-100 text-leaf-700 rounded-lg font-medium">${s}</span>
-              <span>GV: ${t}</span>
-              <span>Mã: ${cc}</span>
-              <span class="ml-auto text-gray-500">${period2.length} HS</span>
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-green-50 flex items-center justify-center text-red-600">
+                <p className="font-medium bg-white p-6 rounded-2xl shadow-sm">{error}</p>
             </div>
-          </div>
-        </div>`;
+        );
     }
-    html += `</div>`;
-  } else if (currentTab === 'teacher') {
-    const p1 = allData.filter(d => d.teacher1 === val);
-    const p2 = allData.filter(d => d.teacher2 === val);
-    html = `<div class="fade-in space-y-3">`;
-    if (p1.length > 0) {
-      const codes1 = [...new Set(p1.map(d => d.classCode1))];
-      html += `
-        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
-          <div class="bg-leaf-600 px-4 py-3">
-            <h2 class="text-white font-semibold">${val}</h2>
-            <p class="text-leaf-100 text-xs">Tiết 1-2</p>
-          </div>
-          <div class="p-4 space-y-2">
-            ${codes1.map(cc => {
-              const items = p1.filter(d => d.classCode1 === cc);
-              return `<div class="p-3 bg-leaf-50 rounded-xl">
-                <div class="flex items-center justify-between text-sm">
-                  <span class="font-medium text-leaf-800">${cc} - ${items[0].subject1}</span>
-                  <span class="text-gray-500">Phòng ${items[0].room1} · ${items.length} HS</span>
+
+    return (
+        <div className="min-h-screen bg-[#f4fcf6] text-green-900 font-sans pb-12 selection:bg-green-200">
+            {/* --- HEADER --- */}
+            <header className="bg-white sticky top-0 z-20 shadow-sm border-b border-green-100">
+                <div className="max-w-md md:max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl md:text-2xl font-bold text-green-800 flex items-center gap-2">
+                            <Calendar className="w-6 h-6 text-green-600" />
+                            TKB Tự Chọn Lớp 12
+                        </h1>
+                        <p className="text-xs md:text-sm text-green-600 font-medium">Áp dụng từ ngày 4/5/2026</p>
+                    </div>
+                    <a 
+                        href="https://tkbnkhoahung.github.io/tkbnk2526hs/" 
+                        className="p-2 bg-green-50 hover:bg-green-100 rounded-full text-green-700 transition"
+                        title="Về Trang Chủ"
+                    >
+                        <Home className="w-6 h-6" />
+                    </a>
                 </div>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>`;
-    }
-    if (p2.length > 0) {
-      const codes2 = [...new Set(p2.map(d => d.classCode2))];
-      html += `
-        <div class="bg-white rounded-2xl border border-leaf-200 overflow-hidden card-hover">
-          <div class="bg-leaf-600 px-4 py-3">
-            <h2 class="text-white font-semibold">${val}</h2>
-            <p class="text-leaf-100 text-xs">Tiết 3-4</p>
-          </div>
-          <div class="p-4 space-y-2">
-            ${codes2.map(cc => {
-              const items = p2.filter(d => d.classCode2 === cc);
-              return `<div class="p-3 bg-leaf-50 rounded-xl">
-                <div class="flex items-center justify-between text-sm">
-                  <span class="font-medium text-leaf-800">${cc} - ${items[0].subject2}</span>
-                  <span class="text-gray-500">Phòng ${items[0].room2} · ${items.length} HS</span>
+            </header>
+
+            <main className="max-w-md md:max-w-3xl mx-auto px-4 mt-6">
+                
+                {/* --- STATS DASHBOARD --- */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <StatCard icon={<Users />} title="Học sinh" value={stats.hs} />
+                    <StatCard icon={<LayoutGrid />} title="Lớp" value={stats.lop} />
+                    <StatCard icon={<User />} title="Giáo viên" value={stats.gv} />
+                    <StatCard icon={<MapPin />} title="Phòng" value={stats.phong} />
                 </div>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>`;
-    }
-    html += `</div>`;
-  }
-  
-  results.innerHTML = html;
+
+                {/* --- TAB NAVIGATION --- */}
+                <div className="flex overflow-x-auto pb-2 mb-4 gap-2 scrollbar-hide">
+                    <TabButton active={activeTab === 'hocsinh'} onClick={() => setActiveTab('hocsinh')} icon={<Users size={18}/>}>Học sinh</TabButton>
+                    <TabButton active={activeTab === 'malop'} onClick={() => setActiveTab('malop')} icon={<BookOpen size={18}/>}>Mã lớp</TabButton>
+                    <TabButton active={activeTab === 'phong'} onClick={() => setActiveTab('phong')} icon={<MapPin size={18}/>}>Phòng</TabButton>
+                    <TabButton active={activeTab === 'giaovien'} onClick={() => setActiveTab('giaovien')} icon={<User size={18}/>}>Giáo viên</TabButton>
+                </div>
+
+                {/* --- SEARCH & SELECT CONTROLS --- */}
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-green-50 flex flex-col md:flex-row gap-3 mb-6">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-400 w-5 h-5" />
+                        <input 
+                            type="text" 
+                            list="search-suggestions"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            placeholder={`Tìm kiếm ${activeTab}...`}
+                            className="w-full pl-10 pr-10 py-2.5 bg-green-50 border-none rounded-xl focus:ring-2 focus:ring-green-400 text-green-800 placeholder-green-400 outline-none transition"
+                        />
+                        {searchTerm && (
+                            <button onClick={clearSearch} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 hover:text-green-700">
+                                <RefreshCw className="w-4 h-4" />
+                            </button>
+                        )}
+                        <datalist id="search-suggestions">
+                            {getActiveList().map((item, idx) => <option key={idx} value={item} />)}
+                        </datalist>
+                    </div>
+
+                    <div className="flex-1">
+                        <select 
+                            value={selectedItem}
+                            onChange={(e) => setSelectedItem(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-green-50 border-none rounded-xl focus:ring-2 focus:ring-green-400 text-green-800 outline-none cursor-pointer transition"
+                        >
+                            {getActiveList().map((item, idx) => (
+                                <option key={idx} value={item}>{item}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {/* --- EXPORT WALLPAPER BUTTON --- */}
+                <div className="flex justify-end mb-4">
+                    <button 
+                        onClick={exportToImage}
+                        disabled={isExporting}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-medium transition shadow-sm disabled:opacity-70"
+                    >
+                        {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                        Xuất làm hình nền
+                    </button>
+                </div>
+
+                {/* ================= WALLPAPER RENDER AREA ================= */}
+                <div 
+                    ref={wallpaperRef} 
+                    className="bg-gradient-to-b from-[#e8fbf0] to-[#f4fcf6] p-5 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white relative overflow-hidden"
+                    style={{ minHeight: '500px' }}
+                >
+                    {/* Decorative element */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 pointer-events-none"></div>
+                    
+                    <div className="text-center mb-6 relative z-10">
+                        <h2 className="text-2xl font-bold text-green-800">THỜI KHÓA BIỂU</h2>
+                        <div className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-semibold mt-2">
+                            Áp dụng 04/05/2026
+                        </div>
+                    </div>
+
+                    {/* DYNAMIC CONTENT BASED ON TAB */}
+                    {selectedItem ? (
+                        <>
+                            {activeTab === 'hocsinh' && <StudentView data={data} studentName={selectedItem} />}
+                            {activeTab === 'malop' && <ClassCodeView data={data} classCode={selectedItem} />}
+                            {activeTab === 'phong' && <RoomView data={data} roomCode={selectedItem} />}
+                            {activeTab === 'giaovien' && <TeacherView data={data} teacherName={selectedItem} />}
+                        </>
+                    ) : (
+                        <div className="text-center text-green-500 py-10">
+                            Vui lòng chọn thông tin để xem
+                        </div>
+                    )}
+                </div>
+
+                {/* --- EXPORT CSV BUTTON --- */}
+                <div className="mt-12 text-center">
+                    <button 
+                        onClick={exportToCSV}
+                        className="inline-flex items-center gap-2 px-5 py-3 bg-white text-green-700 border border-green-200 hover:border-green-300 hover:bg-green-50 rounded-xl font-medium transition shadow-sm"
+                    >
+                        <Download className="w-5 h-5" />
+                        Tải Toàn Bộ Dữ Liệu (Excel/CSV)
+                    </button>
+                </div>
+
+            </main>
+        </div>
+    );
 }
 
-function renderPeriod(label, subject, teacher, classCode, room) {
-  if (!subject) return '';
-  return `
-    <div class="flex items-center gap-3 p-3 bg-leaf-50 rounded-xl">
-      <div class="w-16 text-center">
-        <div class="text-xs text-gray-500">${label}</div>
-        <div class="font-bold text-leaf-700 text-lg">${subject}</div>
-      </div>
-      <div class="h-8 w-px bg-leaf-200"></div>
-      <div class="flex-1 text-sm space-y-0.5">
-        <div class="font-medium text-gray-800">${teacher}</div>
-        <div class="text-gray-500">Mã: ${classCode} · Phòng: ${room}</div>
-      </div>
-    </div>`;
-}
+// ================= UI COMPONENTS =================
 
-function exportWallpaper() {
-  const canvas = document.getElementById('export-canvas');
-  const ctx = canvas.getContext('2d');
-  const w = 1080, h = 1920;
-  
-  // Background gradient
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, '#14532d');
-  grad.addColorStop(1, '#166534');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-  
-  // Get selected item
-  const sel = document.getElementById('dropdown-select').value;
-  if (!sel || currentTab !== 'student') {
-    // Just export current student from dropdown or first
-    const target = sel || (students.length > 0 ? students[0] : '');
-    if (!target) return;
-    drawStudentWallpaper(ctx, target, w, h);
-  } else {
-    drawStudentWallpaper(ctx, sel, w, h);
-  }
-  
-  // Download
-  const link = document.createElement('a');
-  link.download = `TKB_${sel || 'export'}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-}
+const StatCard = ({ icon, title, value }) => (
+    <div className="bg-white p-3 rounded-2xl shadow-sm border border-green-50 flex flex-col items-center text-center justify-center">
+        <div className="text-green-500 mb-1">{icon}</div>
+        <div className="text-xl font-bold text-green-800">{value}</div>
+        <div className="text-[10px] uppercase font-bold tracking-wider text-green-400">{title}</div>
+    </div>
+);
 
-function drawStudentWallpaper(ctx, name, w, h) {
-  const entries = allData.filter(d => d.studentName === name);
-  if (entries.length === 0) return;
-  const e = entries[0];
-  
-  // Title
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 48px Be Vietnam Pro, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('THỜI KHÓA BIỂU TỰ CHỌN', w/2, 200);
-  ctx.font = '32px Be Vietnam Pro, sans-serif';
-  ctx.fillStyle = '#86efac';
-  ctx.fillText('Áp dụng từ 4/5/2026', w/2, 260);
-  
-  // Student info
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 56px Be Vietnam Pro, sans-serif';
-  ctx.fillText(e.studentName, w/2, 400);
-  ctx.font = '36px Be Vietnam Pro, sans-serif';
-  ctx.fillStyle = '#bbf7d0';
-  ctx.fillText(`Lớp ${e.realClass}`, w/2, 460);
-  
-  // Period 1
-  let y = 580;
-  ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  roundRect(ctx, 80, y, w-160, 280, 24);
-  ctx.fill();
-  
-  ctx.fillStyle = '#4ade80';
-  ctx.font = 'bold 32px Be Vietnam Pro, sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('TIẾT 1-2', 130, y + 60);
-  
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 44px Be Vietnam Pro, sans-serif';
-  ctx.fillText(e.subject1, 130, y + 120);
-  ctx.font = '30px Be Vietnam Pro, sans-serif';
-  ctx.fillStyle = '#dcfce7';
-  ctx.fillText(`GV: ${e.teacher1}`, 130, y + 175);
-  ctx.fillText(`Mã lớp: ${e.classCode1} · Phòng: ${e.room1}`, 130, y + 225);
-  
-  // Period 2
-  y = 920;
-  ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  roundRect(ctx, 80, y, w-160, 280, 24);
-  ctx.fill();
-  
-  ctx.fillStyle = '#4ade80';
-  ctx.font = 'bold 32px Be Vietnam Pro, sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('TIẾT 3-4', 130, y + 60);
-  
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 44px Be Vietnam Pro, sans-serif';
-  ctx.fillText(e.subject2, 130, y + 120);
-  ctx.font = '30px Be Vietnam Pro, sans-serif';
-  ctx.fillStyle = '#dcfce7';
-  ctx.fillText(`GV: ${e.teacher2}`, 130, y + 175);
-  ctx.fillText(`Mã lớp: ${e.classCode2} · Phòng: ${e.room2}`, 130, y + 225);
-  
-  // Footer
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#6b7280';
-  ctx.font = '24px Be Vietnam Pro, sans-serif';
-  ctx.fillText('tkbnkhoahung.github.io', w/2, h - 100);
-}
+const TabButton = ({ active, onClick, children, icon }) => (
+    <button 
+        onClick={onClick}
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition whitespace-nowrap
+        ${active ? 'bg-green-600 text-white shadow-md' : 'bg-white text-green-600 hover:bg-green-100 shadow-sm border border-green-50'}`}
+    >
+        {icon}
+        {children}
+    </button>
+);
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.lineTo(x+w-r, y);
-  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-  ctx.lineTo(x+w, y+h-r);
-  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-  ctx.lineTo(x+r, y+h);
-  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-  ctx.lineTo(x, y+r);
-  ctx.quadraticCurveTo(x, y, x+r, y);
-  ctx.closePath();
-}
+const DetailRow = ({ icon, label, value, highlight }) => (
+    <div className="flex items-start gap-3 py-2 border-b border-green-50 last:border-0">
+        <div className="text-green-400 mt-0.5">{icon}</div>
+        <div>
+            <div className="text-xs text-green-500 mb-0.5">{label}</div>
+            <div className={`font-semibold ${highlight ? 'text-green-700 text-lg' : 'text-green-800'}`}>{value}</div>
+        </div>
+    </div>
+);
 
-function exportCSV() {
-  let csv = 'Lớp,Họ tên,Môn 1,GV 1,Mã lớp 1,Phòng 1,Môn 2,GV 2,Mã lớp 2,Phòng 2\n';
-  allData.forEach(d => {
-    csv += `${d.realClass},${d.studentName},${d.subject1},${d.teacher1},${d.classCode1},${d.room1},${d.subject2},${d.teacher2},${d.classCode2},${d.room2}\n`;
-  });
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'ThoiKhoaBieu_Lop12.csv';
-  link.click();
-}
+const ScheduleCard = ({ title, mon, gv, maLop, phong, isRoomView = false, isTeacherView = false }) => (
+    <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-1 h-full bg-green-400"></div>
+        <h4 className="text-sm font-bold text-green-500 mb-3 uppercase tracking-wide">{title}</h4>
+        
+        <div className="space-y-1">
+            {!isTeacherView && mon && <DetailRow icon={<BookOpen size={16}/>} label="Môn Học" value={mon} highlight />}
+            {!isTeacherView && isRoomView && <DetailRow icon={<User size={16}/>} label="Giáo Viên" value={gv} />}
+            {!isRoomView && !isTeacherView && <DetailRow icon={<User size={16}/>} label="Giáo Viên" value={gv} />}
+            {isTeacherView && <DetailRow icon={<BookOpen size={16}/>} label="Môn Học" value={mon} highlight />}
+            
+            <DetailRow icon={<LayoutGrid size={16}/>} label="Mã Lớp" value={maLop} />
+            {!isRoomView && <DetailRow icon={<MapPin size={16}/>} label="Phòng Học" value={phong} />}
+        </div>
+    </div>
+);
 
-// Element SDK
-const defaultConfig = {
-  page_title: 'Thời Khóa Biểu Tự Chọn Lớp 12',
-  background_color: '#f0fdf4',
-  surface_color: '#ffffff',
-  text_color: '#1f2937',
-  primary_color: '#16a34a',
-  secondary_color: '#86efac',
-  font_family: 'Be Vietnam Pro',
-  font_size: 16
+// ================= VIEW COMPONENTS =================
+
+const StudentView = ({ data, studentName }) => {
+    const studentInfo = data.find(r => r[1] === studentName);
+    if (!studentInfo) return null;
+
+    return (
+        <div className="space-y-4">
+            <div className="bg-green-600 text-white p-5 rounded-2xl shadow-lg text-center relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
+                <h3 className="text-xl font-bold mb-1">{studentInfo[1]}</h3>
+                <p className="text-green-100 font-medium">Lớp sinh hoạt: {studentInfo[0]}</p>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 mt-4">
+                <ScheduleCard 
+                    title="Tiết 1 - 2" 
+                    mon={studentInfo[2]} 
+                    gv={studentInfo[3]} 
+                    maLop={studentInfo[4]} 
+                    phong={studentInfo[5]} 
+                />
+                <ScheduleCard 
+                    title="Tiết 3 - 4" 
+                    mon={studentInfo[6]} 
+                    gv={studentInfo[7]} 
+                    maLop={studentInfo[8]} 
+                    phong={studentInfo[9]} 
+                />
+            </div>
+        </div>
+    );
 };
 
-window.elementSdk.init({
-  defaultConfig,
-  onConfigChange: async (config) => {
-    const bg = config.background_color || defaultConfig.background_color;
-    const primary = config.primary_color || defaultConfig.primary_color;
-    const title = config.page_title || defaultConfig.page_title;
-    const font = config.font_family || defaultConfig.font_family;
-    
-    document.body.style.backgroundColor = bg;
-    document.getElementById('page-title').textContent = title;
-    document.body.style.fontFamily = `${font}, sans-serif`;
-  },
-  mapToCapabilities: (config) => ({
-    recolorables: [
-      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); }},
-      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }},
-      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); }},
-      { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); }},
-      { get: () => config.secondary_color || defaultConfig.secondary_color, set: (v) => { config.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); }}
-    ],
-    borderables: [],
-    fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }},
-    fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }}
-  }),
-  mapToEditPanelValues: (config) => new Map([
-    ['page_title', config.page_title || defaultConfig.page_title]
-  ])
-});
+const ClassCodeView = ({ data, classCode }) => {
+    let classInfo = null;
+    let students = [];
+    let isPeriod1 = true;
 
-// Init
-fetchData();
-lucide.createIcons();
-</script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f45d60712de85ce',t:'MTc3NzU0NDY1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
+    data.forEach(r => {
+        if (r[4] === classCode) {
+            if (!classInfo) classInfo = { mon: r[2], gv: r[3], phong: r[5], tiet: "Tiết 1 - 2" };
+            students.push({ ten: r[1], lop: r[0] });
+        } else if (r[8] === classCode) {
+            if (!classInfo) classInfo = { mon: r[6], gv: r[7], phong: r[9], tiet: "Tiết 3 - 4" };
+            students.push({ ten: r[1], lop: r[0] });
+            isPeriod1 = false;
+        }
+    });
+
+    if (!classInfo) return null;
+
+    return (
+        <div className="space-y-4 relative z-10">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-green-100">
+                <div className="flex justify-between items-center border-b border-green-50 pb-3 mb-3">
+                    <h3 className="text-2xl font-bold text-green-800">{classCode}</h3>
+                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">{classInfo.tiet}</span>
+                </div>
+                <div className="space-y-2">
+                    <DetailRow icon={<BookOpen size={18}/>} label="Môn Học" value={classInfo.mon} highlight />
+                    <DetailRow icon={<User size={18}/>} label="Giáo Viên" value={classInfo.gv} />
+                    <DetailRow icon={<MapPin size={18}/>} label="Phòng" value={classInfo.phong} />
+                </div>
+            </div>
+
+            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-green-100">
+                <div className="bg-green-50 p-3 border-b border-green-100 flex justify-between items-center">
+                    <h4 className="font-bold text-green-800 text-sm">Danh Sách Học Sinh</h4>
+                    <span className="text-xs font-semibold bg-white text-green-600 px-2 py-1 rounded-lg">Sĩ số: {students.length}</span>
+                </div>
+                <div className="max-h-60 overflow-y-auto p-2 scrollbar-hide">
+                    {students.map((hs, idx) => (
+                        <div key={idx} className="flex justify-between py-2 px-3 border-b border-green-50 last:border-0 hover:bg-green-50/50 rounded-lg">
+                            <span className="text-sm font-medium text-green-900">{idx + 1}. {hs.ten}</span>
+                            <span className="text-xs text-green-500 font-medium">{hs.lop}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const RoomView = ({ data, roomCode }) => {
+    let p1Info = null;
+    let p1Count = 0;
+    let p2Info = null;
+    let p2Count = 0;
+
+    data.forEach(r => {
+        if (r[5] === roomCode) {
+            if (!p1Info) p1Info = { gv: r[3], mon: r[2], maLop: r[4] };
+            p1Count++;
+        }
+        if (r[9] === roomCode) {
+            if (!p2Info) p2Info = { gv: r[7], mon: r[6], maLop: r[8] };
+            p2Count++;
+        }
+    });
+
+    return (
+        <div className="space-y-4">
+            <div className="bg-green-800 text-white p-4 rounded-2xl shadow-lg flex items-center justify-center gap-3">
+                <MapPin className="text-green-300" />
+                <h3 className="text-2xl font-bold tracking-wider">{roomCode}</h3>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+                {p1Info ? (
+                    <div className="relative">
+                        <ScheduleCard title="Tiết 1 - 2" mon={p1Info.mon} gv={p1Info.gv} maLop={p1Info.maLop} isRoomView />
+                        <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-lg">
+                            {p1Count} Học sinh
+                        </div>
+                    </div>
+                ) : (
+                    <div className="bg-white/50 border border-dashed border-green-200 p-4 rounded-2xl text-center text-green-400 text-sm">
+                        Phòng trống Tiết 1 - 2
+                    </div>
+                )}
+
+                {p2Info ? (
+                    <div className="relative">
+                        <ScheduleCard title="Tiết 3 - 4" mon={p2Info.mon} gv={p2Info.gv} maLop={p2Info.maLop} isRoomView />
+                        <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-lg">
+                            {p2Count} Học sinh
+                        </div>
+                    </div>
+                ) : (
+                    <div className="bg-white/50 border border-dashed border-green-200 p-4 rounded-2xl text-center text-green-400 text-sm">
+                        Phòng trống Tiết 3 - 4
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const TeacherView = ({ data, teacherName }) => {
+    let p1Info = null;
+    let p2Info = null;
+    let studentsP1 = [];
+    let studentsP2 = [];
+
+    data.forEach(r => {
+        if (r[3] === teacherName) {
+            if (!p1Info) p1Info = { mon: r[2], maLop: r[4], phong: r[5] };
+            studentsP1.push(r[1]);
+        }
+        if (r[7] === teacherName) {
+            if (!p2Info) p2Info = { mon: r[6], maLop: r[8], phong: r[9] };
+            studentsP2.push(r[1]);
+        }
+    });
+
+    return (
+        <div className="space-y-4">
+            <div className="bg-white border-2 border-green-100 p-4 rounded-2xl shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                    <User size={24} />
+                </div>
+                <div>
+                    <div className="text-xs font-bold text-green-400 uppercase">Giáo Viên</div>
+                    <h3 className="text-xl font-bold text-green-800">{teacherName}</h3>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+                {p1Info && (
+                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100">
+                        <h4 className="text-sm font-bold text-green-500 mb-3 border-b border-green-50 pb-2">TIẾT 1 - 2</h4>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                            <DetailRow icon={<BookOpen size={14}/>} label="Môn" value={p1Info.mon} />
+                            <DetailRow icon={<LayoutGrid size={14}/>} label="Mã Lớp" value={p1Info.maLop} />
+                            <DetailRow icon={<MapPin size={14}/>} label="Phòng" value={p1Info.phong} />
+                            <DetailRow icon={<Users size={14}/>} label="Sĩ số" value={studentsP1.length} />
+                        </div>
+                    </div>
+                )}
+
+                {p2Info && (
+                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100">
+                        <h4 className="text-sm font-bold text-green-500 mb-3 border-b border-green-50 pb-2">TIẾT 3 - 4</h4>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                            <DetailRow icon={<BookOpen size={14}/>} label="Môn" value={p2Info.mon} />
+                            <DetailRow icon={<LayoutGrid size={14}/>} label="Mã Lớp" value={p2Info.maLop} />
+                            <DetailRow icon={<MapPin size={14}/>} label="Phòng" value={p2Info.phong} />
+                            <DetailRow icon={<Users size={14}/>} label="Sĩ số" value={studentsP2.length} />
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
