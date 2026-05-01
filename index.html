@@ -1,596 +1,613 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { 
-    Home, Search, Download, Image as ImageIcon, Users, BookOpen, 
-    MapPin, User, LayoutGrid, Calendar, ArrowLeft, RefreshCw
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thời Khóa Biểu Tự Chọn Lớp 12</title>
 
-export default function App() {
-    // ================= STATE MANAGEMENT =================
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [activeTab, setActiveTab] = useState('hocsinh'); // hocsinh, malop, phong, giaovien
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedItem, setSelectedItem] = useState('');
-    const [isExporting, setIsExporting] = useState(false);
-    const wallpaperRef = useRef(null);
+    <!-- Tailwind CSS qua CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    // ================= FETCH & PARSE DATA =================
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Chuyển đổi link pubhtml thành pub?output=csv để lấy dữ liệu thô
-                const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFBaheWuorYlfWoVnK9YfCsHMOnuD2T3snqgD2SjISW_91fxr0d4KphUCJsmJyFhMFKNXFKJJWn3Gb/pub?output=csv";
-                const response = await fetch(sheetUrl);
-                
-                if (!response.ok) throw new Error("Không thể tải dữ liệu từ Google Sheet.");
-                
-                const csvText = await response.text();
-                const parsedData = parseCSV(csvText);
-                
-                // Bỏ qua hàng tiêu đề đầu tiên
-                setData(parsedData.slice(1));
-                setLoading(false);
-            } catch (err) {
-                console.error(err);
-                setError("Lỗi kết nối dữ liệu. Vui lòng thử lại sau.");
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-
-        // Tải thư viện html2canvas động để xuất ảnh
-        if (!window.html2canvas) {
-            const script = document.createElement('script');
-            script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-            document.head.appendChild(script);
-        }
-    }, []);
-
-    // Hàm parse CSV đơn giản
-    const parseCSV = (str) => {
-        const rows = [];
-        let row = [];
-        let curr = '';
-        let inQuotes = false;
-        
-        for (let i = 0; i < str.length; i++) {
-            const char = str[i];
-            if (char === '"' && str[i+1] === '"') {
-                curr += '"'; i++;
-            } else if (char === '"') {
-                inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-                row.push(curr.trim()); curr = '';
-            } else if (char === '\n' && !inQuotes) {
-                row.push(curr.trim()); rows.push(row); row = []; curr = '';
-            } else if (char !== '\r') {
-                curr += char;
-            }
-        }
-        if (curr || row.length) {
-            row.push(curr.trim()); rows.push(row);
-        }
-        return rows.filter(r => r.length > 1); // Loại bỏ dòng trống
-    };
-
-    // ================= DATA PROCESSING & MEMOIZATION =================
+    <!-- Thư viện React và ReactDOM qua CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     
-    // Tạo danh sách duy nhất cho các Dropdown tùy theo tab
-    const lists = useMemo(() => {
-        // Đảm bảo trả về đúng các key: hs, malop, phong, gv ngay cả khi mảng rỗng
-        if (!data || !data.length) return { hs: [], malop: [], phong: [], gv: [] };
-        
-        const hs = [...new Set(data.map(r => r[1]).filter(Boolean))].sort();
-        const ml1 = data.map(r => r[4]).filter(Boolean);
-        const ml2 = data.map(r => r[8]).filter(Boolean);
-        const malop = [...new Set([...ml1, ...ml2])].sort();
-        
-        const p1 = data.map(r => r[5]).filter(Boolean);
-        const p2 = data.map(r => r[9]).filter(Boolean);
-        const phong = [...new Set([...p1, ...p2])].sort();
-        
-        const gv1 = data.map(r => r[3]).filter(Boolean);
-        const gv2 = data.map(r => r[7]).filter(Boolean);
-        const gv = [...new Set([...gv1, ...gv2])].sort();
+    <!-- Babel để biên dịch JSX trực tiếp trên trình duyệt -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-        return { hs, malop, phong, gv };
-    }, [data]);
+    <!-- Thư viện xuất ảnh -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    // Thống kê tổng quan
-    const stats = useMemo(() => {
-        if (!data || !data.length) return { hs: 0, lop: 0, phong: 0, gv: 0 };
-        return {
-            hs: lists.hs?.length || 0,
-            lop: [...new Set(data.map(r => r[0]).filter(Boolean))].length,
-            phong: lists.phong?.length || 0,
-            gv: lists.gv?.length || 0
-        };
-    }, [lists, data]);
+    <style>
+        /* Ẩn thanh cuộn */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-[#f4fcf6] text-green-900 font-sans pb-12 selection:bg-green-200">
+    <!-- Nơi render ứng dụng React -->
+    <div id="root"></div>
 
-    // Đặt mặc định người đầu tiên khi đổi tab
-    useEffect(() => {
-        setSearchTerm('');
-        if (activeTab === 'hocsinh' && lists.hs?.length) setSelectedItem(lists.hs[0]);
-        else if (activeTab === 'malop' && lists.malop?.length) setSelectedItem(lists.malop[0]);
-        else if (activeTab === 'phong' && lists.phong?.length) setSelectedItem(lists.phong[0]);
-        else if (activeTab === 'giaovien' && lists.gv?.length) setSelectedItem(lists.gv[0]);
-        else setSelectedItem('');
-    }, [activeTab, lists]);
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
 
-    // Xử lý tìm kiếm
-    const handleSearchChange = (e) => {
-        const val = e.target.value;
-        setSearchTerm(val);
-        
-        // Cập nhật dropdown nếu tìm thấy khớp hoàn toàn
-        let targetList = [];
-        if (activeTab === 'hocsinh') targetList = lists.hs || [];
-        else if (activeTab === 'malop') targetList = lists.malop || [];
-        else if (activeTab === 'phong') targetList = lists.phong || [];
-        else if (activeTab === 'giaovien') targetList = lists.gv || [];
-
-        const exactMatch = targetList.find(item => item.toLowerCase() === val.toLowerCase());
-        if (exactMatch) {
-            setSelectedItem(exactMatch);
-        }
-    };
-
-    // Xử lý nút xóa tìm kiếm
-    const clearSearch = () => {
-        setSearchTerm('');
-        if (activeTab === 'hocsinh' && lists.hs) setSelectedItem(lists.hs[0] || '');
-        if (activeTab === 'malop' && lists.malop) setSelectedItem(lists.malop[0] || '');
-        if (activeTab === 'phong' && lists.phong) setSelectedItem(lists.phong[0] || '');
-        if (activeTab === 'giaovien' && lists.gv) setSelectedItem(lists.gv[0] || '');
-    };
-
-    // ================= EXPORT FUNCTIONS =================
-    const exportToImage = async () => {
-        if (!wallpaperRef.current || !window.html2canvas) return;
-        setIsExporting(true);
-        try {
-            const canvas = await window.html2canvas(wallpaperRef.current, {
-                scale: 2, // Tăng chất lượng ảnh
-                backgroundColor: '#f0fdf4', // Tông xanh nhạt
-                useCORS: true
-            });
-            const link = document.createElement('a');
-            link.download = `TKB_${activeTab}_${selectedItem.replace(/\s+/g, '_')}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        } catch (err) {
-            console.error("Lỗi xuất ảnh:", err);
-            alert("Không thể xuất ảnh. Vui lòng thử lại.");
-        }
-        setIsExporting(false);
-    };
-
-    const exportToCSV = () => {
-        if (!data || !data.length) return;
-        // Thêm Header
-        let csvContent = "Lop Thuc,Ten Hoc Sinh,Mon T1-2,GV T1-2,Ma Lop T1-2,Phong T1-2,Mon T3-4,GV T3-4,Ma Lop T3-4,Phong T3-4\n";
-        data.forEach(row => {
-            const cleanRow = row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`);
-            csvContent += cleanRow.join(",") + "\n";
-        });
-        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // \uFEFF cho UTF-8 BOM Excel
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "ThoiKhoaBieu_ToanTruong.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    // ================= RENDER HELPERS =================
-    
-    // Lấy danh sách đang active
-    const getActiveList = () => {
-        switch(activeTab) {
-            case 'hocsinh': return lists.hs || [];
-            case 'malop': return lists.malop || [];
-            case 'phong': return lists.phong || [];
-            case 'giaovien': return lists.gv || [];
-            default: return [];
-        }
-    };
-
-    // Giao diện Đang tải
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center text-green-800">
-                <RefreshCw className="w-10 h-10 animate-spin mb-4" />
-                <h2 className="text-xl font-semibold">Đang tải dữ liệu thời khóa biểu...</h2>
-            </div>
+        // ================= ICONS CỤC BỘ TỪ LUCIDE =================
+        // Định nghĩa lại các icon dưới dạng inline SVG để không cần cài đặt thư viện bên ngoài
+        const SvgIcon = ({ paths, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {paths}
+            </svg>
         );
-    }
 
-    if (error) {
-        return (
-            <div className="min-h-screen bg-green-50 flex items-center justify-center text-red-600">
-                <p className="font-medium bg-white p-6 rounded-2xl shadow-sm">{error}</p>
-            </div>
-        );
-    }
+        const IconHome = (p) => <SvgIcon {...p} paths={<><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>} />;
+        const IconSearch = (p) => <SvgIcon {...p} paths={<><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>} />;
+        const IconDownload = (p) => <SvgIcon {...p} paths={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>} />;
+        const IconImage = (p) => <SvgIcon {...p} paths={<><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></>} />;
+        const IconUsers = (p) => <SvgIcon {...p} paths={<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>} />;
+        const IconBookOpen = (p) => <SvgIcon {...p} paths={<><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>} />;
+        const IconMapPin = (p) => <SvgIcon {...p} paths={<><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>} />;
+        const IconUser = (p) => <SvgIcon {...p} paths={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />;
+        const IconLayoutGrid = (p) => <SvgIcon {...p} paths={<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></>} />;
+        const IconCalendar = (p) => <SvgIcon {...p} paths={<><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>} />;
+        const IconRefreshCw = (p) => <SvgIcon {...p} paths={<><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></>} />;
 
-    return (
-        <div className="min-h-screen bg-[#f4fcf6] text-green-900 font-sans pb-12 selection:bg-green-200">
-            {/* --- HEADER --- */}
-            <header className="bg-white sticky top-0 z-20 shadow-sm border-b border-green-100">
-                <div className="max-w-md md:max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-green-800 flex items-center gap-2">
-                            <Calendar className="w-6 h-6 text-green-600" />
-                            TKB Tự Chọn Lớp 12
-                        </h1>
-                        <p className="text-xs md:text-sm text-green-600 font-medium">Áp dụng từ ngày 4/5/2026</p>
-                    </div>
-                    <a 
-                        href="https://tkbnkhoahung.github.io/tkbnk2526hs/" 
-                        className="p-2 bg-green-50 hover:bg-green-100 rounded-full text-green-700 transition"
-                        title="Về Trang Chủ"
-                    >
-                        <Home className="w-6 h-6" />
-                    </a>
-                </div>
-            </header>
 
-            <main className="max-w-md md:max-w-3xl mx-auto px-4 mt-6">
+        // ================= COMPONENT CHÍNH =================
+        function App() {
+            // ================= STATE MANAGEMENT =================
+            const [data, setData] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [activeTab, setActiveTab] = useState('hocsinh'); // hocsinh, malop, phong, giaovien
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedItem, setSelectedItem] = useState('');
+            const [isExporting, setIsExporting] = useState(false);
+            const wallpaperRef = useRef(null);
+
+            // ================= FETCH & PARSE DATA =================
+            useEffect(() => {
+                const fetchData = async () => {
+                    try {
+                        const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFBaheWuorYlfWoVnK9YfCsHMOnuD2T3snqgD2SjISW_91fxr0d4KphUCJsmJyFhMFKNXFKJJWn3Gb/pub?output=csv";
+                        const response = await fetch(sheetUrl);
+                        
+                        if (!response.ok) throw new Error("Không thể tải dữ liệu từ Google Sheet.");
+                        
+                        const csvText = await response.text();
+                        const parsedData = parseCSV(csvText);
+                        
+                        setData(parsedData.slice(1));
+                        setLoading(false);
+                    } catch (err) {
+                        console.error(err);
+                        setError("Lỗi kết nối dữ liệu. Vui lòng thử lại sau.");
+                        setLoading(false);
+                    }
+                };
+
+                fetchData();
+            }, []);
+
+            const parseCSV = (str) => {
+                const rows = [];
+                let row = [];
+                let curr = '';
+                let inQuotes = false;
                 
-                {/* --- STATS DASHBOARD --- */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                    <StatCard icon={<Users />} title="Học sinh" value={stats.hs} />
-                    <StatCard icon={<LayoutGrid />} title="Lớp" value={stats.lop} />
-                    <StatCard icon={<User />} title="Giáo viên" value={stats.gv} />
-                    <StatCard icon={<MapPin />} title="Phòng" value={stats.phong} />
-                </div>
+                for (let i = 0; i < str.length; i++) {
+                    const char = str[i];
+                    if (char === '"' && str[i+1] === '"') {
+                        curr += '"'; i++;
+                    } else if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(curr.trim()); curr = '';
+                    } else if (char === '\n' && !inQuotes) {
+                        row.push(curr.trim()); rows.push(row); row = []; curr = '';
+                    } else if (char !== '\r') {
+                        curr += char;
+                    }
+                }
+                if (curr || row.length) {
+                    row.push(curr.trim()); rows.push(row);
+                }
+                return rows.filter(r => r.length > 1);
+            };
 
-                {/* --- TAB NAVIGATION --- */}
-                <div className="flex overflow-x-auto pb-2 mb-4 gap-2 scrollbar-hide">
-                    <TabButton active={activeTab === 'hocsinh'} onClick={() => setActiveTab('hocsinh')} icon={<Users size={18}/>}>Học sinh</TabButton>
-                    <TabButton active={activeTab === 'malop'} onClick={() => setActiveTab('malop')} icon={<BookOpen size={18}/>}>Mã lớp</TabButton>
-                    <TabButton active={activeTab === 'phong'} onClick={() => setActiveTab('phong')} icon={<MapPin size={18}/>}>Phòng</TabButton>
-                    <TabButton active={activeTab === 'giaovien'} onClick={() => setActiveTab('giaovien')} icon={<User size={18}/>}>Giáo viên</TabButton>
-                </div>
+            // ================= DATA PROCESSING =================
+            const lists = useMemo(() => {
+                if (!data || !data.length) return { hs: [], malop: [], phong: [], gv: [] };
+                
+                const hs = [...new Set(data.map(r => r[1]).filter(Boolean))].sort();
+                const ml1 = data.map(r => r[4]).filter(Boolean);
+                const ml2 = data.map(r => r[8]).filter(Boolean);
+                const malop = [...new Set([...ml1, ...ml2])].sort();
+                
+                const p1 = data.map(r => r[5]).filter(Boolean);
+                const p2 = data.map(r => r[9]).filter(Boolean);
+                const phong = [...new Set([...p1, ...p2])].sort();
+                
+                const gv1 = data.map(r => r[3]).filter(Boolean);
+                const gv2 = data.map(r => r[7]).filter(Boolean);
+                const gv = [...new Set([...gv1, ...gv2])].sort();
 
-                {/* --- SEARCH & SELECT CONTROLS --- */}
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-green-50 flex flex-col md:flex-row gap-3 mb-6">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-400 w-5 h-5" />
-                        <input 
-                            type="text" 
-                            list="search-suggestions"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            placeholder={`Tìm kiếm ${activeTab}...`}
-                            className="w-full pl-10 pr-10 py-2.5 bg-green-50 border-none rounded-xl focus:ring-2 focus:ring-green-400 text-green-800 placeholder-green-400 outline-none transition"
-                        />
-                        {searchTerm && (
-                            <button onClick={clearSearch} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 hover:text-green-700">
-                                <RefreshCw className="w-4 h-4" />
-                            </button>
-                        )}
-                        <datalist id="search-suggestions">
-                            {getActiveList().map((item, idx) => <option key={idx} value={item} />)}
-                        </datalist>
+                return { hs, malop, phong, gv };
+            }, [data]);
+
+            const stats = useMemo(() => {
+                if (!data || !data.length) return { hs: 0, lop: 0, phong: 0, gv: 0 };
+                return {
+                    hs: lists.hs?.length || 0,
+                    lop: [...new Set(data.map(r => r[0]).filter(Boolean))].length,
+                    phong: lists.phong?.length || 0,
+                    gv: lists.gv?.length || 0
+                };
+            }, [lists, data]);
+
+            useEffect(() => {
+                setSearchTerm('');
+                if (activeTab === 'hocsinh' && lists.hs?.length) setSelectedItem(lists.hs[0]);
+                else if (activeTab === 'malop' && lists.malop?.length) setSelectedItem(lists.malop[0]);
+                else if (activeTab === 'phong' && lists.phong?.length) setSelectedItem(lists.phong[0]);
+                else if (activeTab === 'giaovien' && lists.gv?.length) setSelectedItem(lists.gv[0]);
+                else setSelectedItem('');
+            }, [activeTab, lists]);
+
+            const handleSearchChange = (e) => {
+                const val = e.target.value;
+                setSearchTerm(val);
+                
+                let targetList = [];
+                if (activeTab === 'hocsinh') targetList = lists.hs || [];
+                else if (activeTab === 'malop') targetList = lists.malop || [];
+                else if (activeTab === 'phong') targetList = lists.phong || [];
+                else if (activeTab === 'giaovien') targetList = lists.gv || [];
+
+                const exactMatch = targetList.find(item => item.toLowerCase() === val.toLowerCase());
+                if (exactMatch) setSelectedItem(exactMatch);
+            };
+
+            const clearSearch = () => {
+                setSearchTerm('');
+                if (activeTab === 'hocsinh' && lists.hs) setSelectedItem(lists.hs[0] || '');
+                if (activeTab === 'malop' && lists.malop) setSelectedItem(lists.malop[0] || '');
+                if (activeTab === 'phong' && lists.phong) setSelectedItem(lists.phong[0] || '');
+                if (activeTab === 'giaovien' && lists.gv) setSelectedItem(lists.gv[0] || '');
+            };
+
+            const exportToImage = async () => {
+                if (!wallpaperRef.current || !window.html2canvas) return;
+                setIsExporting(true);
+                try {
+                    const canvas = await window.html2canvas(wallpaperRef.current, {
+                        scale: 2,
+                        backgroundColor: '#f0fdf4',
+                        useCORS: true
+                    });
+                    const link = document.createElement('a');
+                    link.download = `TKB_${activeTab}_${selectedItem.replace(/\s+/g, '_')}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                } catch (err) {
+                    console.error("Lỗi xuất ảnh:", err);
+                    alert("Không thể xuất ảnh. Vui lòng thử lại.");
+                }
+                setIsExporting(false);
+            };
+
+            const exportToCSV = () => {
+                if (!data || !data.length) return;
+                let csvContent = "Lop Thuc,Ten Hoc Sinh,Mon T1-2,GV T1-2,Ma Lop T1-2,Phong T1-2,Mon T3-4,GV T3-4,Ma Lop T3-4,Phong T3-4\n";
+                data.forEach(row => {
+                    const cleanRow = row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`);
+                    csvContent += cleanRow.join(",") + "\n";
+                });
+                const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "ThoiKhoaBieu_ToanTruong.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const getActiveList = () => {
+                switch(activeTab) {
+                    case 'hocsinh': return lists.hs || [];
+                    case 'malop': return lists.malop || [];
+                    case 'phong': return lists.phong || [];
+                    case 'giaovien': return lists.gv || [];
+                    default: return [];
+                }
+            };
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center text-green-800">
+                        <IconRefreshCw className="w-10 h-10 animate-spin mb-4" />
+                        <h2 className="text-xl font-semibold">Đang tải dữ liệu thời khóa biểu...</h2>
                     </div>
+                );
+            }
 
-                    <div className="flex-1">
-                        <select 
-                            value={selectedItem}
-                            onChange={(e) => setSelectedItem(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-green-50 border-none rounded-xl focus:ring-2 focus:ring-green-400 text-green-800 outline-none cursor-pointer transition"
-                        >
-                            {getActiveList().map((item, idx) => (
-                                <option key={idx} value={item}>{item}</option>
-                            ))}
-                        </select>
+            if (error) {
+                return (
+                    <div className="min-h-screen bg-green-50 flex items-center justify-center text-red-600">
+                        <p className="font-medium bg-white p-6 rounded-2xl shadow-sm">{error}</p>
                     </div>
-                </div>
+                );
+            }
 
-                {/* --- EXPORT WALLPAPER BUTTON --- */}
-                <div className="flex justify-end mb-4">
-                    <button 
-                        onClick={exportToImage}
-                        disabled={isExporting}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-medium transition shadow-sm disabled:opacity-70"
-                    >
-                        {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                        Xuất làm hình nền
-                    </button>
-                </div>
-
-                {/* ================= WALLPAPER RENDER AREA ================= */}
-                <div 
-                    ref={wallpaperRef} 
-                    className="bg-gradient-to-b from-[#e8fbf0] to-[#f4fcf6] p-5 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white relative overflow-hidden"
-                    style={{ minHeight: '500px' }}
-                >
-                    {/* Decorative element */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 pointer-events-none"></div>
-                    
-                    <div className="text-center mb-6 relative z-10">
-                        <h2 className="text-2xl font-bold text-green-800">THỜI KHÓA BIỂU</h2>
-                        <div className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-semibold mt-2">
-                            Áp dụng 04/05/2026
-                        </div>
-                    </div>
-
-                    {/* DYNAMIC CONTENT BASED ON TAB */}
-                    {selectedItem ? (
-                        <>
-                            {activeTab === 'hocsinh' && <StudentView data={data} studentName={selectedItem} />}
-                            {activeTab === 'malop' && <ClassCodeView data={data} classCode={selectedItem} />}
-                            {activeTab === 'phong' && <RoomView data={data} roomCode={selectedItem} />}
-                            {activeTab === 'giaovien' && <TeacherView data={data} teacherName={selectedItem} />}
-                        </>
-                    ) : (
-                        <div className="text-center text-green-500 py-10">
-                            Vui lòng chọn thông tin để xem
-                        </div>
-                    )}
-                </div>
-
-                {/* --- EXPORT CSV BUTTON --- */}
-                <div className="mt-12 text-center">
-                    <button 
-                        onClick={exportToCSV}
-                        className="inline-flex items-center gap-2 px-5 py-3 bg-white text-green-700 border border-green-200 hover:border-green-300 hover:bg-green-50 rounded-xl font-medium transition shadow-sm"
-                    >
-                        <Download className="w-5 h-5" />
-                        Tải Toàn Bộ Dữ Liệu (Excel/CSV)
-                    </button>
-                </div>
-
-            </main>
-        </div>
-    );
-}
-
-// ================= UI COMPONENTS =================
-
-const StatCard = ({ icon, title, value }) => (
-    <div className="bg-white p-3 rounded-2xl shadow-sm border border-green-50 flex flex-col items-center text-center justify-center">
-        <div className="text-green-500 mb-1">{icon}</div>
-        <div className="text-xl font-bold text-green-800">{value}</div>
-        <div className="text-[10px] uppercase font-bold tracking-wider text-green-400">{title}</div>
-    </div>
-);
-
-const TabButton = ({ active, onClick, children, icon }) => (
-    <button 
-        onClick={onClick}
-        className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition whitespace-nowrap
-        ${active ? 'bg-green-600 text-white shadow-md' : 'bg-white text-green-600 hover:bg-green-100 shadow-sm border border-green-50'}`}
-    >
-        {icon}
-        {children}
-    </button>
-);
-
-const DetailRow = ({ icon, label, value, highlight }) => (
-    <div className="flex items-start gap-3 py-2 border-b border-green-50 last:border-0">
-        <div className="text-green-400 mt-0.5">{icon}</div>
-        <div>
-            <div className="text-xs text-green-500 mb-0.5">{label}</div>
-            <div className={`font-semibold ${highlight ? 'text-green-700 text-lg' : 'text-green-800'}`}>{value}</div>
-        </div>
-    </div>
-);
-
-const ScheduleCard = ({ title, mon, gv, maLop, phong, isRoomView = false, isTeacherView = false }) => (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-green-400"></div>
-        <h4 className="text-sm font-bold text-green-500 mb-3 uppercase tracking-wide">{title}</h4>
-        
-        <div className="space-y-1">
-            {!isTeacherView && mon && <DetailRow icon={<BookOpen size={16}/>} label="Môn Học" value={mon} highlight />}
-            {!isTeacherView && isRoomView && <DetailRow icon={<User size={16}/>} label="Giáo Viên" value={gv} />}
-            {!isRoomView && !isTeacherView && <DetailRow icon={<User size={16}/>} label="Giáo Viên" value={gv} />}
-            {isTeacherView && <DetailRow icon={<BookOpen size={16}/>} label="Môn Học" value={mon} highlight />}
-            
-            <DetailRow icon={<LayoutGrid size={16}/>} label="Mã Lớp" value={maLop} />
-            {!isRoomView && <DetailRow icon={<MapPin size={16}/>} label="Phòng Học" value={phong} />}
-        </div>
-    </div>
-);
-
-// ================= VIEW COMPONENTS =================
-
-const StudentView = ({ data, studentName }) => {
-    const studentInfo = data.find(r => r[1] === studentName);
-    if (!studentInfo) return null;
-
-    return (
-        <div className="space-y-4">
-            <div className="bg-green-600 text-white p-5 rounded-2xl shadow-lg text-center relative overflow-hidden">
-                <div className="absolute -right-4 -top-4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
-                <h3 className="text-xl font-bold mb-1">{studentInfo[1]}</h3>
-                <p className="text-green-100 font-medium">Lớp sinh hoạt: {studentInfo[0]}</p>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4 mt-4">
-                <ScheduleCard 
-                    title="Tiết 1 - 2" 
-                    mon={studentInfo[2]} 
-                    gv={studentInfo[3]} 
-                    maLop={studentInfo[4]} 
-                    phong={studentInfo[5]} 
-                />
-                <ScheduleCard 
-                    title="Tiết 3 - 4" 
-                    mon={studentInfo[6]} 
-                    gv={studentInfo[7]} 
-                    maLop={studentInfo[8]} 
-                    phong={studentInfo[9]} 
-                />
-            </div>
-        </div>
-    );
-};
-
-const ClassCodeView = ({ data, classCode }) => {
-    let classInfo = null;
-    let students = [];
-    let isPeriod1 = true;
-
-    data.forEach(r => {
-        if (r[4] === classCode) {
-            if (!classInfo) classInfo = { mon: r[2], gv: r[3], phong: r[5], tiet: "Tiết 1 - 2" };
-            students.push({ ten: r[1], lop: r[0] });
-        } else if (r[8] === classCode) {
-            if (!classInfo) classInfo = { mon: r[6], gv: r[7], phong: r[9], tiet: "Tiết 3 - 4" };
-            students.push({ ten: r[1], lop: r[0] });
-            isPeriod1 = false;
-        }
-    });
-
-    if (!classInfo) return null;
-
-    return (
-        <div className="space-y-4 relative z-10">
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-green-100">
-                <div className="flex justify-between items-center border-b border-green-50 pb-3 mb-3">
-                    <h3 className="text-2xl font-bold text-green-800">{classCode}</h3>
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">{classInfo.tiet}</span>
-                </div>
-                <div className="space-y-2">
-                    <DetailRow icon={<BookOpen size={18}/>} label="Môn Học" value={classInfo.mon} highlight />
-                    <DetailRow icon={<User size={18}/>} label="Giáo Viên" value={classInfo.gv} />
-                    <DetailRow icon={<MapPin size={18}/>} label="Phòng" value={classInfo.phong} />
-                </div>
-            </div>
-
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-green-100">
-                <div className="bg-green-50 p-3 border-b border-green-100 flex justify-between items-center">
-                    <h4 className="font-bold text-green-800 text-sm">Danh Sách Học Sinh</h4>
-                    <span className="text-xs font-semibold bg-white text-green-600 px-2 py-1 rounded-lg">Sĩ số: {students.length}</span>
-                </div>
-                <div className="max-h-60 overflow-y-auto p-2 scrollbar-hide">
-                    {students.map((hs, idx) => (
-                        <div key={idx} className="flex justify-between py-2 px-3 border-b border-green-50 last:border-0 hover:bg-green-50/50 rounded-lg">
-                            <span className="text-sm font-medium text-green-900">{idx + 1}. {hs.ten}</span>
-                            <span className="text-xs text-green-500 font-medium">{hs.lop}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const RoomView = ({ data, roomCode }) => {
-    let p1Info = null;
-    let p1Count = 0;
-    let p2Info = null;
-    let p2Count = 0;
-
-    data.forEach(r => {
-        if (r[5] === roomCode) {
-            if (!p1Info) p1Info = { gv: r[3], mon: r[2], maLop: r[4] };
-            p1Count++;
-        }
-        if (r[9] === roomCode) {
-            if (!p2Info) p2Info = { gv: r[7], mon: r[6], maLop: r[8] };
-            p2Count++;
-        }
-    });
-
-    return (
-        <div className="space-y-4">
-            <div className="bg-green-800 text-white p-4 rounded-2xl shadow-lg flex items-center justify-center gap-3">
-                <MapPin className="text-green-300" />
-                <h3 className="text-2xl font-bold tracking-wider">{roomCode}</h3>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-                {p1Info ? (
-                    <div className="relative">
-                        <ScheduleCard title="Tiết 1 - 2" mon={p1Info.mon} gv={p1Info.gv} maLop={p1Info.maLop} isRoomView />
-                        <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-lg">
-                            {p1Count} Học sinh
-                        </div>
-                    </div>
-                ) : (
-                    <div className="bg-white/50 border border-dashed border-green-200 p-4 rounded-2xl text-center text-green-400 text-sm">
-                        Phòng trống Tiết 1 - 2
-                    </div>
-                )}
-
-                {p2Info ? (
-                    <div className="relative">
-                        <ScheduleCard title="Tiết 3 - 4" mon={p2Info.mon} gv={p2Info.gv} maLop={p2Info.maLop} isRoomView />
-                        <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-lg">
-                            {p2Count} Học sinh
-                        </div>
-                    </div>
-                ) : (
-                    <div className="bg-white/50 border border-dashed border-green-200 p-4 rounded-2xl text-center text-green-400 text-sm">
-                        Phòng trống Tiết 3 - 4
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-const TeacherView = ({ data, teacherName }) => {
-    let p1Info = null;
-    let p2Info = null;
-    let studentsP1 = [];
-    let studentsP2 = [];
-
-    data.forEach(r => {
-        if (r[3] === teacherName) {
-            if (!p1Info) p1Info = { mon: r[2], maLop: r[4], phong: r[5] };
-            studentsP1.push(r[1]);
-        }
-        if (r[7] === teacherName) {
-            if (!p2Info) p2Info = { mon: r[6], maLop: r[8], phong: r[9] };
-            studentsP2.push(r[1]);
-        }
-    });
-
-    return (
-        <div className="space-y-4">
-            <div className="bg-white border-2 border-green-100 p-4 rounded-2xl shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                    <User size={24} />
-                </div>
+            return (
                 <div>
-                    <div className="text-xs font-bold text-green-400 uppercase">Giáo Viên</div>
-                    <h3 className="text-xl font-bold text-green-800">{teacherName}</h3>
+                    <header className="bg-white sticky top-0 z-20 shadow-sm border-b border-green-100">
+                        <div className="max-w-md md:max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+                            <div>
+                                <h1 className="text-xl md:text-2xl font-bold text-green-800 flex items-center gap-2">
+                                    <IconCalendar className="w-6 h-6 text-green-600" />
+                                    TKB Tự Chọn Lớp 12
+                                </h1>
+                                <p className="text-xs md:text-sm text-green-600 font-medium">Áp dụng từ ngày 4/5/2026</p>
+                            </div>
+                            <a 
+                                href="https://tkbnkhoahung.github.io/tkbnk2526hs/" 
+                                className="p-2 bg-green-50 hover:bg-green-100 rounded-full text-green-700 transition"
+                                title="Về Trang Chủ"
+                            >
+                                <IconHome className="w-6 h-6" />
+                            </a>
+                        </div>
+                    </header>
+
+                    <main className="max-w-md md:max-w-3xl mx-auto px-4 mt-6">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                            <StatCard icon={<IconUsers />} title="Học sinh" value={stats.hs} />
+                            <StatCard icon={<IconLayoutGrid />} title="Lớp" value={stats.lop} />
+                            <StatCard icon={<IconUser />} title="Giáo viên" value={stats.gv} />
+                            <StatCard icon={<IconMapPin />} title="Phòng" value={stats.phong} />
+                        </div>
+
+                        <div className="flex overflow-x-auto pb-2 mb-4 gap-2 scrollbar-hide">
+                            <TabButton active={activeTab === 'hocsinh'} onClick={() => setActiveTab('hocsinh')} icon={<IconUsers size={18}/>}>Học sinh</TabButton>
+                            <TabButton active={activeTab === 'malop'} onClick={() => setActiveTab('malop')} icon={<IconBookOpen size={18}/>}>Mã lớp</TabButton>
+                            <TabButton active={activeTab === 'phong'} onClick={() => setActiveTab('phong')} icon={<IconMapPin size={18}/>}>Phòng</TabButton>
+                            <TabButton active={activeTab === 'giaovien'} onClick={() => setActiveTab('giaovien')} icon={<IconUser size={18}/>}>Giáo viên</TabButton>
+                        </div>
+
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-green-50 flex flex-col md:flex-row gap-3 mb-6">
+                            <div className="relative flex-1">
+                                <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-400 w-5 h-5" />
+                                <input 
+                                    type="text" 
+                                    list="search-suggestions"
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    placeholder={`Tìm kiếm ${activeTab}...`}
+                                    className="w-full pl-10 pr-10 py-2.5 bg-green-50 border-none rounded-xl focus:ring-2 focus:ring-green-400 text-green-800 placeholder-green-400 outline-none transition"
+                                />
+                                {searchTerm && (
+                                    <button onClick={clearSearch} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 hover:text-green-700">
+                                        <IconRefreshCw className="w-4 h-4" />
+                                    </button>
+                                )}
+                                <datalist id="search-suggestions">
+                                    {getActiveList().map((item, idx) => <option key={idx} value={item} />)}
+                                </datalist>
+                            </div>
+
+                            <div className="flex-1">
+                                <select 
+                                    value={selectedItem}
+                                    onChange={(e) => setSelectedItem(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-green-50 border-none rounded-xl focus:ring-2 focus:ring-green-400 text-green-800 outline-none cursor-pointer transition"
+                                >
+                                    {getActiveList().map((item, idx) => (
+                                        <option key={idx} value={item}>{item}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end mb-4">
+                            <button 
+                                onClick={exportToImage}
+                                disabled={isExporting}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-medium transition shadow-sm disabled:opacity-70"
+                            >
+                                {isExporting ? <IconRefreshCw className="w-4 h-4 animate-spin" /> : <IconImage className="w-4 h-4" />}
+                                Xuất làm hình nền
+                            </button>
+                        </div>
+
+                        <div 
+                            ref={wallpaperRef} 
+                            className="bg-gradient-to-b from-[#e8fbf0] to-[#f4fcf6] p-5 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white relative overflow-hidden"
+                            style={{ minHeight: '500px' }}
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 pointer-events-none"></div>
+                            
+                            <div className="text-center mb-6 relative z-10">
+                                <h2 className="text-2xl font-bold text-green-800">THỜI KHÓA BIỂU</h2>
+                                <div className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-semibold mt-2">
+                                    Áp dụng 04/05/2026
+                                </div>
+                            </div>
+
+                            {selectedItem ? (
+                                <>
+                                    {activeTab === 'hocsinh' && <StudentView data={data} studentName={selectedItem} />}
+                                    {activeTab === 'malop' && <ClassCodeView data={data} classCode={selectedItem} />}
+                                    {activeTab === 'phong' && <RoomView data={data} roomCode={selectedItem} />}
+                                    {activeTab === 'giaovien' && <TeacherView data={data} teacherName={selectedItem} />}
+                                </>
+                            ) : (
+                                <div className="text-center text-green-500 py-10">
+                                    Vui lòng chọn thông tin để xem
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-12 text-center">
+                            <button 
+                                onClick={exportToCSV}
+                                className="inline-flex items-center gap-2 px-5 py-3 bg-white text-green-700 border border-green-200 hover:border-green-300 hover:bg-green-50 rounded-xl font-medium transition shadow-sm"
+                            >
+                                <IconDownload className="w-5 h-5" />
+                                Tải Toàn Bộ Dữ Liệu (Excel/CSV)
+                            </button>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        // ================= UI COMPONENTS =================
+        const StatCard = ({ icon, title, value }) => (
+            <div className="bg-white p-3 rounded-2xl shadow-sm border border-green-50 flex flex-col items-center text-center justify-center">
+                <div className="text-green-500 mb-1">{icon}</div>
+                <div className="text-xl font-bold text-green-800">{value}</div>
+                <div className="text-[10px] uppercase font-bold tracking-wider text-green-400">{title}</div>
+            </div>
+        );
+
+        const TabButton = ({ active, onClick, children, icon }) => (
+            <button 
+                onClick={onClick}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition whitespace-nowrap
+                ${active ? 'bg-green-600 text-white shadow-md' : 'bg-white text-green-600 hover:bg-green-100 shadow-sm border border-green-50'}`}
+            >
+                {icon}
+                {children}
+            </button>
+        );
+
+        const DetailRow = ({ icon, label, value, highlight }) => (
+            <div className="flex items-start gap-3 py-2 border-b border-green-50 last:border-0">
+                <div className="text-green-400 mt-0.5">{icon}</div>
+                <div>
+                    <div className="text-xs text-green-500 mb-0.5">{label}</div>
+                    <div className={`font-semibold ${highlight ? 'text-green-700 text-lg' : 'text-green-800'}`}>{value}</div>
                 </div>
             </div>
+        );
 
-            <div className="grid grid-cols-1 gap-4">
-                {p1Info && (
-                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100">
-                        <h4 className="text-sm font-bold text-green-500 mb-3 border-b border-green-50 pb-2">TIẾT 1 - 2</h4>
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                            <DetailRow icon={<BookOpen size={14}/>} label="Môn" value={p1Info.mon} />
-                            <DetailRow icon={<LayoutGrid size={14}/>} label="Mã Lớp" value={p1Info.maLop} />
-                            <DetailRow icon={<MapPin size={14}/>} label="Phòng" value={p1Info.phong} />
-                            <DetailRow icon={<Users size={14}/>} label="Sĩ số" value={studentsP1.length} />
-                        </div>
-                    </div>
-                )}
-
-                {p2Info && (
-                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100">
-                        <h4 className="text-sm font-bold text-green-500 mb-3 border-b border-green-50 pb-2">TIẾT 3 - 4</h4>
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                            <DetailRow icon={<BookOpen size={14}/>} label="Môn" value={p2Info.mon} />
-                            <DetailRow icon={<LayoutGrid size={14}/>} label="Mã Lớp" value={p2Info.maLop} />
-                            <DetailRow icon={<MapPin size={14}/>} label="Phòng" value={p2Info.phong} />
-                            <DetailRow icon={<Users size={14}/>} label="Sĩ số" value={studentsP2.length} />
-                        </div>
-                    </div>
-                )}
+        const ScheduleCard = ({ title, mon, gv, maLop, phong, isRoomView = false, isTeacherView = false }) => (
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-green-400"></div>
+                <h4 className="text-sm font-bold text-green-500 mb-3 uppercase tracking-wide">{title}</h4>
+                
+                <div className="space-y-1">
+                    {!isTeacherView && mon && <DetailRow icon={<IconBookOpen size={16}/>} label="Môn Học" value={mon} highlight />}
+                    {!isTeacherView && isRoomView && <DetailRow icon={<IconUser size={16}/>} label="Giáo Viên" value={gv} />}
+                    {!isRoomView && !isTeacherView && <DetailRow icon={<IconUser size={16}/>} label="Giáo Viên" value={gv} />}
+                    {isTeacherView && <DetailRow icon={<IconBookOpen size={16}/>} label="Môn Học" value={mon} highlight />}
+                    
+                    <DetailRow icon={<IconLayoutGrid size={16}/>} label="Mã Lớp" value={maLop} />
+                    {!isRoomView && <DetailRow icon={<IconMapPin size={16}/>} label="Phòng Học" value={phong} />}
+                </div>
             </div>
-        </div>
-    );
-};
+        );
+
+        // ================= VIEW COMPONENTS =================
+        const StudentView = ({ data, studentName }) => {
+            const studentInfo = data.find(r => r[1] === studentName);
+            if (!studentInfo) return null;
+
+            return (
+                <div className="space-y-4">
+                    <div className="bg-green-600 text-white p-5 rounded-2xl shadow-lg text-center relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
+                        <h3 className="text-xl font-bold mb-1">{studentInfo[1]}</h3>
+                        <p className="text-green-100 font-medium">Lớp sinh hoạt: {studentInfo[0]}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4 mt-4">
+                        <ScheduleCard 
+                            title="Tiết 1 - 2" 
+                            mon={studentInfo[2]} 
+                            gv={studentInfo[3]} 
+                            maLop={studentInfo[4]} 
+                            phong={studentInfo[5]} 
+                        />
+                        <ScheduleCard 
+                            title="Tiết 3 - 4" 
+                            mon={studentInfo[6]} 
+                            gv={studentInfo[7]} 
+                            maLop={studentInfo[8]} 
+                            phong={studentInfo[9]} 
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+        const ClassCodeView = ({ data, classCode }) => {
+            let classInfo = null;
+            let students = [];
+            let isPeriod1 = true;
+
+            data.forEach(r => {
+                if (r[4] === classCode) {
+                    if (!classInfo) classInfo = { mon: r[2], gv: r[3], phong: r[5], tiet: "Tiết 1 - 2" };
+                    students.push({ ten: r[1], lop: r[0] });
+                } else if (r[8] === classCode) {
+                    if (!classInfo) classInfo = { mon: r[6], gv: r[7], phong: r[9], tiet: "Tiết 3 - 4" };
+                    students.push({ ten: r[1], lop: r[0] });
+                    isPeriod1 = false;
+                }
+            });
+
+            if (!classInfo) return null;
+
+            return (
+                <div className="space-y-4 relative z-10">
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-green-100">
+                        <div className="flex justify-between items-center border-b border-green-50 pb-3 mb-3">
+                            <h3 className="text-2xl font-bold text-green-800">{classCode}</h3>
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">{classInfo.tiet}</span>
+                        </div>
+                        <div className="space-y-2">
+                            <DetailRow icon={<IconBookOpen size={18}/>} label="Môn Học" value={classInfo.mon} highlight />
+                            <DetailRow icon={<IconUser size={18}/>} label="Giáo Viên" value={classInfo.gv} />
+                            <DetailRow icon={<IconMapPin size={18}/>} label="Phòng" value={classInfo.phong} />
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-green-100">
+                        <div className="bg-green-50 p-3 border-b border-green-100 flex justify-between items-center">
+                            <h4 className="font-bold text-green-800 text-sm">Danh Sách Học Sinh</h4>
+                            <span className="text-xs font-semibold bg-white text-green-600 px-2 py-1 rounded-lg">Sĩ số: {students.length}</span>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto p-2 scrollbar-hide">
+                            {students.map((hs, idx) => (
+                                <div key={idx} className="flex justify-between py-2 px-3 border-b border-green-50 last:border-0 hover:bg-green-50/50 rounded-lg">
+                                    <span className="text-sm font-medium text-green-900">{idx + 1}. {hs.ten}</span>
+                                    <span className="text-xs text-green-500 font-medium">{hs.lop}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const RoomView = ({ data, roomCode }) => {
+            let p1Info = null;
+            let p1Count = 0;
+            let p2Info = null;
+            let p2Count = 0;
+
+            data.forEach(r => {
+                if (r[5] === roomCode) {
+                    if (!p1Info) p1Info = { gv: r[3], mon: r[2], maLop: r[4] };
+                    p1Count++;
+                }
+                if (r[9] === roomCode) {
+                    if (!p2Info) p2Info = { gv: r[7], mon: r[6], maLop: r[8] };
+                    p2Count++;
+                }
+            });
+
+            return (
+                <div className="space-y-4">
+                    <div className="bg-green-800 text-white p-4 rounded-2xl shadow-lg flex items-center justify-center gap-3">
+                        <IconMapPin className="text-green-300" />
+                        <h3 className="text-2xl font-bold tracking-wider">{roomCode}</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        {p1Info ? (
+                            <div className="relative">
+                                <ScheduleCard title="Tiết 1 - 2" mon={p1Info.mon} gv={p1Info.gv} maLop={p1Info.maLop} isRoomView />
+                                <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-lg">
+                                    {p1Count} Học sinh
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-white/50 border border-dashed border-green-200 p-4 rounded-2xl text-center text-green-400 text-sm">
+                                Phòng trống Tiết 1 - 2
+                            </div>
+                        )}
+
+                        {p2Info ? (
+                            <div className="relative">
+                                <ScheduleCard title="Tiết 3 - 4" mon={p2Info.mon} gv={p2Info.gv} maLop={p2Info.maLop} isRoomView />
+                                <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-lg">
+                                    {p2Count} Học sinh
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-white/50 border border-dashed border-green-200 p-4 rounded-2xl text-center text-green-400 text-sm">
+                                Phòng trống Tiết 3 - 4
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const TeacherView = ({ data, teacherName }) => {
+            let p1Info = null;
+            let p2Info = null;
+            let studentsP1 = [];
+            let studentsP2 = [];
+
+            data.forEach(r => {
+                if (r[3] === teacherName) {
+                    if (!p1Info) p1Info = { mon: r[2], maLop: r[4], phong: r[5] };
+                    studentsP1.push(r[1]);
+                }
+                if (r[7] === teacherName) {
+                    if (!p2Info) p2Info = { mon: r[6], maLop: r[8], phong: r[9] };
+                    studentsP2.push(r[1]);
+                }
+            });
+
+            return (
+                <div className="space-y-4">
+                    <div className="bg-white border-2 border-green-100 p-4 rounded-2xl shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            <IconUser size={24} />
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold text-green-400 uppercase">Giáo Viên</div>
+                            <h3 className="text-xl font-bold text-green-800">{teacherName}</h3>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        {p1Info && (
+                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100">
+                                <h4 className="text-sm font-bold text-green-500 mb-3 border-b border-green-50 pb-2">TIẾT 1 - 2</h4>
+                                <div className="grid grid-cols-2 gap-2 mb-3">
+                                    <DetailRow icon={<IconBookOpen size={14}/>} label="Môn" value={p1Info.mon} />
+                                    <DetailRow icon={<IconLayoutGrid size={14}/>} label="Mã Lớp" value={p1Info.maLop} />
+                                    <DetailRow icon={<IconMapPin size={14}/>} label="Phòng" value={p1Info.phong} />
+                                    <DetailRow icon={<IconUsers size={14}/>} label="Sĩ số" value={studentsP1.length} />
+                                </div>
+                            </div>
+                        )}
+
+                        {p2Info && (
+                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100">
+                                <h4 className="text-sm font-bold text-green-500 mb-3 border-b border-green-50 pb-2">TIẾT 3 - 4</h4>
+                                <div className="grid grid-cols-2 gap-2 mb-3">
+                                    <DetailRow icon={<IconBookOpen size={14}/>} label="Môn" value={p2Info.mon} />
+                                    <DetailRow icon={<IconLayoutGrid size={14}/>} label="Mã Lớp" value={p2Info.maLop} />
+                                    <DetailRow icon={<IconMapPin size={14}/>} label="Phòng" value={p2Info.phong} />
+                                    <DetailRow icon={<IconUsers size={14}/>} label="Sĩ số" value={studentsP2.length} />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Render ứng dụng vào thẻ div#root
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
