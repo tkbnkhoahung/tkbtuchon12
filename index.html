@@ -17,22 +17,71 @@
 
     <!-- Thư viện xuất ảnh -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <style>
-        /* Ẩn thanh cuộn */
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
 </head>
-<body class="bg-[#f4fcf6] text-green-900 font-sans pb-12 selection:bg-green-200">
+<body>
     <!-- Nơi render ứng dụng React -->
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useMemo, useRef, createContext, useContext } = React;
+
+        // ================= THEME CONFIGURATION =================
+        const THEMES = {
+            green: {
+                id: 'green', name: 'Xanh lá', colorHex: '#16a34a',
+                appBg: 'bg-[#f4fcf6]', selection: 'selection:bg-green-200',
+                textDark: 'text-green-900', textMain: 'text-green-800', textLight: 'text-green-500', textHighlight: 'text-green-700', textPrimary: 'text-green-600',
+                bgLight: 'bg-green-50', bgMid: 'bg-green-100', bgPrimary: 'bg-green-600', bgPrimaryLight: 'bg-green-400', textWhite: 'text-white', hoverPrimary: 'hover:bg-green-700', hoverBgLight: 'hover:bg-green-100', hoverBgLight50: 'hover:bg-green-50',
+                borderLight: 'border-green-50', borderMid: 'border-green-100', borderHighlight: 'border-green-200', borderPrimary: 'border-green-600',
+                focusRing: 'focus:ring-green-400', gradientFrom: 'from-[#e8fbf0]', gradientTo: 'to-[#f4fcf6]', iconLight: 'text-green-400', iconMain: 'text-green-600',
+                scrollbarThumb: '#bbf7d0', scrollbarThumbHover: '#86efac', scrollbarTrack: '#f0fdf4', exportBg: '#f0fdf4', borderDashed: 'border-green-200',
+                gradientCard: 'from-green-50 to-white'
+            },
+            blue: {
+                id: 'blue', name: 'Xanh dương', colorHex: '#2563eb',
+                appBg: 'bg-[#f0f8ff]', selection: 'selection:bg-blue-200',
+                textDark: 'text-blue-900', textMain: 'text-blue-800', textLight: 'text-blue-500', textHighlight: 'text-blue-700', textPrimary: 'text-blue-600',
+                bgLight: 'bg-blue-50', bgMid: 'bg-blue-100', bgPrimary: 'bg-blue-600', bgPrimaryLight: 'bg-blue-400', textWhite: 'text-white', hoverPrimary: 'hover:bg-blue-700', hoverBgLight: 'hover:bg-blue-100', hoverBgLight50: 'hover:bg-blue-50',
+                borderLight: 'border-blue-50', borderMid: 'border-blue-100', borderHighlight: 'border-blue-200', borderPrimary: 'border-blue-600',
+                focusRing: 'focus:ring-blue-400', gradientFrom: 'from-[#e6f2ff]', gradientTo: 'to-[#f0f8ff]', iconLight: 'text-blue-400', iconMain: 'text-blue-600',
+                scrollbarThumb: '#bfdbfe', scrollbarThumbHover: '#93c5fd', scrollbarTrack: '#eff6ff', exportBg: '#eff6ff', borderDashed: 'border-blue-200',
+                gradientCard: 'from-blue-50 to-white'
+            },
+            purple: {
+                id: 'purple', name: 'Tím', colorHex: '#9333ea',
+                appBg: 'bg-[#fcfaff]', selection: 'selection:bg-purple-200',
+                textDark: 'text-purple-900', textMain: 'text-purple-800', textLight: 'text-purple-500', textHighlight: 'text-purple-700', textPrimary: 'text-purple-600',
+                bgLight: 'bg-purple-50', bgMid: 'bg-purple-100', bgPrimary: 'bg-purple-600', bgPrimaryLight: 'bg-purple-400', textWhite: 'text-white', hoverPrimary: 'hover:bg-purple-700', hoverBgLight: 'hover:bg-purple-100', hoverBgLight50: 'hover:bg-purple-50',
+                borderLight: 'border-purple-50', borderMid: 'border-purple-100', borderHighlight: 'border-purple-200', borderPrimary: 'border-purple-600',
+                focusRing: 'focus:ring-purple-400', gradientFrom: 'from-[#f5eaff]', gradientTo: 'to-[#fcfaff]', iconLight: 'text-purple-400', iconMain: 'text-purple-600',
+                scrollbarThumb: '#e9d5ff', scrollbarThumbHover: '#d8b4fe', scrollbarTrack: '#faf5ff', exportBg: '#faf5ff', borderDashed: 'border-purple-200',
+                gradientCard: 'from-purple-50 to-white'
+            },
+            rose: {
+                id: 'rose', name: 'Hồng', colorHex: '#e11d48',
+                appBg: 'bg-[#fff5f6]', selection: 'selection:bg-rose-200',
+                textDark: 'text-rose-900', textMain: 'text-rose-800', textLight: 'text-rose-500', textHighlight: 'text-rose-700', textPrimary: 'text-rose-600',
+                bgLight: 'bg-rose-50', bgMid: 'bg-rose-100', bgPrimary: 'bg-rose-600', bgPrimaryLight: 'bg-rose-400', textWhite: 'text-white', hoverPrimary: 'hover:bg-rose-700', hoverBgLight: 'hover:bg-rose-100', hoverBgLight50: 'hover:bg-rose-50',
+                borderLight: 'border-rose-50', borderMid: 'border-rose-100', borderHighlight: 'border-rose-200', borderPrimary: 'border-rose-600',
+                focusRing: 'focus:ring-rose-400', gradientFrom: 'from-[#ffe4e6]', gradientTo: 'to-[#fff5f6]', iconLight: 'text-rose-400', iconMain: 'text-rose-600',
+                scrollbarThumb: '#fecdd3', scrollbarThumbHover: '#fda4af', scrollbarTrack: '#fff1f2', exportBg: '#fff1f2', borderDashed: 'border-rose-200',
+                gradientCard: 'from-rose-50 to-white'
+            },
+            amber: {
+                id: 'amber', name: 'Vàng', colorHex: '#d97706',
+                appBg: 'bg-[#fffbf0]', selection: 'selection:bg-amber-200',
+                textDark: 'text-amber-900', textMain: 'text-amber-800', textLight: 'text-amber-600', textHighlight: 'text-amber-700', textPrimary: 'text-amber-600',
+                bgLight: 'bg-amber-50', bgMid: 'bg-amber-100', bgPrimary: 'bg-amber-500', bgPrimaryLight: 'bg-amber-400', textWhite: 'text-white', hoverPrimary: 'hover:bg-amber-600', hoverBgLight: 'hover:bg-amber-100', hoverBgLight50: 'hover:bg-amber-50',
+                borderLight: 'border-amber-50', borderMid: 'border-amber-100', borderHighlight: 'border-amber-200', borderPrimary: 'border-amber-500',
+                focusRing: 'focus:ring-amber-400', gradientFrom: 'from-[#fef3c7]', gradientTo: 'to-[#fffbf0]', iconLight: 'text-amber-400', iconMain: 'text-amber-600',
+                scrollbarThumb: '#fde68a', scrollbarThumbHover: '#fcd34d', scrollbarTrack: '#fffbeb', exportBg: '#fffbeb', borderDashed: 'border-amber-200',
+                gradientCard: 'from-amber-50 to-white'
+            }
+        };
+
+        const ThemeContext = createContext(THEMES.green);
 
         // ================= ICONS CỤC BỘ TỪ LUCIDE =================
-        // Định nghĩa lại các icon dưới dạng inline SVG để không cần cài đặt thư viện bên ngoài
         const SvgIcon = ({ paths, size = 24, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 {paths}
@@ -50,7 +99,9 @@
         const IconLayoutGrid = (p) => <SvgIcon {...p} paths={<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></>} />;
         const IconCalendar = (p) => <SvgIcon {...p} paths={<><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>} />;
         const IconRefreshCw = (p) => <SvgIcon {...p} paths={<><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></>} />;
-
+        const IconX = (p) => <SvgIcon {...p} paths={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>} />;
+        const IconClock = (p) => <SvgIcon {...p} paths={<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>} />;
+        const IconMonitor = (p) => <SvgIcon {...p} paths={<><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></>} />;
 
         // ================= COMPONENT CHÍNH =================
         function App() {
@@ -62,7 +113,10 @@
             const [searchTerm, setSearchTerm] = useState('');
             const [selectedItem, setSelectedItem] = useState('');
             const [isExporting, setIsExporting] = useState(false);
+            const [currentThemeKey, setCurrentThemeKey] = useState('green');
             const wallpaperRef = useRef(null);
+
+            const t = THEMES[currentThemeKey];
 
             // ================= FETCH & PARSE DATA =================
             useEffect(() => {
@@ -70,7 +124,6 @@
                     try {
                         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQFBaheWuorYlfWoVnK9YfCsHMOnuD2T3snqgD2SjISW_91fxr0d4KphUCJsmJyFhMFKNXFKJJWn3Gb/pub?output=csv";
                         const response = await fetch(sheetUrl);
-                        
                         if (!response.ok) throw new Error("Không thể tải dữ liệu từ Google Sheet.");
                         
                         const csvText = await response.text();
@@ -153,27 +206,19 @@
                 else setSelectedItem('');
             }, [activeTab, lists]);
 
-            const handleSearchChange = (e) => {
-                const val = e.target.value;
-                setSearchTerm(val);
-                
-                let targetList = [];
-                if (activeTab === 'hocsinh') targetList = lists.hs || [];
-                else if (activeTab === 'malop') targetList = lists.malop || [];
-                else if (activeTab === 'phong') targetList = lists.phong || [];
-                else if (activeTab === 'giaovien') targetList = lists.gv || [];
-
-                const exactMatch = targetList.find(item => item.toLowerCase() === val.toLowerCase());
-                if (exactMatch) setSelectedItem(exactMatch);
+            const getActiveList = () => {
+                switch(activeTab) {
+                    case 'hocsinh': return lists.hs || [];
+                    case 'malop': return lists.malop || [];
+                    case 'phong': return lists.phong || [];
+                    case 'giaovien': return lists.gv || [];
+                    default: return [];
+                }
             };
 
-            const clearSearch = () => {
-                setSearchTerm('');
-                if (activeTab === 'hocsinh' && lists.hs) setSelectedItem(lists.hs[0] || '');
-                if (activeTab === 'malop' && lists.malop) setSelectedItem(lists.malop[0] || '');
-                if (activeTab === 'phong' && lists.phong) setSelectedItem(lists.phong[0] || '');
-                if (activeTab === 'giaovien' && lists.gv) setSelectedItem(lists.gv[0] || '');
-            };
+            const filteredOptions = getActiveList().filter(item => 
+                item.toLowerCase().includes(searchTerm.toLowerCase())
+            );
 
             const exportToImage = async () => {
                 if (!wallpaperRef.current || !window.html2canvas) return;
@@ -181,7 +226,7 @@
                 try {
                     const canvas = await window.html2canvas(wallpaperRef.current, {
                         scale: 2,
-                        backgroundColor: '#f0fdf4',
+                        backgroundColor: t.exportBg,
                         useCORS: true
                     });
                     const link = document.createElement('a');
@@ -212,240 +257,373 @@
                 document.body.removeChild(link);
             };
 
-            const getActiveList = () => {
-                switch(activeTab) {
-                    case 'hocsinh': return lists.hs || [];
-                    case 'malop': return lists.malop || [];
-                    case 'phong': return lists.phong || [];
-                    case 'giaovien': return lists.gv || [];
-                    default: return [];
-                }
-            };
-
             if (loading) {
                 return (
-                    <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center text-green-800">
+                    <div className={`min-h-screen ${t.bgLight} flex flex-col items-center justify-center ${t.textMain}`}>
                         <IconRefreshCw className="w-10 h-10 animate-spin mb-4" />
-                        <h2 className="text-xl font-semibold">Đang tải dữ liệu thời khóa biểu...</h2>
+                        <h2 className="text-xl font-semibold animate-pulse">Đang tải dữ liệu thời khóa biểu...</h2>
                     </div>
                 );
             }
 
             if (error) {
                 return (
-                    <div className="min-h-screen bg-green-50 flex items-center justify-center text-red-600">
-                        <p className="font-medium bg-white p-6 rounded-2xl shadow-sm">{error}</p>
+                    <div className={`min-h-screen ${t.bgLight} flex items-center justify-center text-red-600`}>
+                        <p className="font-medium bg-white p-6 rounded-2xl shadow-sm border border-red-200">{error}</p>
                     </div>
                 );
             }
 
             return (
-                <div>
-                    <header className="bg-white sticky top-0 z-20 shadow-sm border-b border-green-100">
-                        <div className="max-w-md md:max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-                            <div>
-                                <h1 className="text-xl md:text-2xl font-bold text-green-800 flex items-center gap-2">
-                                    <IconCalendar className="w-6 h-6 text-green-600" />
-                                    TKB Tự Chọn Lớp 12
-                                </h1>
-                                <p className="text-xs md:text-sm text-green-600 font-medium">Áp dụng từ ngày 4/5/2026</p>
-                            </div>
-                            <a 
-                                href="https://tkbnkhoahung.github.io/tkbnk2526hs/" 
-                                className="p-2 bg-green-50 hover:bg-green-100 rounded-full text-green-700 transition"
-                                title="Về Trang Chủ"
-                            >
-                                <IconHome className="w-6 h-6" />
-                            </a>
-                        </div>
-                    </header>
-
-                    <main className="max-w-md md:max-w-3xl mx-auto px-4 mt-6">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                            <StatCard icon={<IconUsers />} title="Học sinh" value={stats.hs} />
-                            <StatCard icon={<IconLayoutGrid />} title="Lớp" value={stats.lop} />
-                            <StatCard icon={<IconUser />} title="Giáo viên" value={stats.gv} />
-                            <StatCard icon={<IconMapPin />} title="Phòng" value={stats.phong} />
-                        </div>
-
-                        <div className="flex overflow-x-auto pb-2 mb-4 gap-2 scrollbar-hide">
-                            <TabButton active={activeTab === 'hocsinh'} onClick={() => setActiveTab('hocsinh')} icon={<IconUsers size={18}/>}>Học sinh</TabButton>
-                            <TabButton active={activeTab === 'malop'} onClick={() => setActiveTab('malop')} icon={<IconBookOpen size={18}/>}>Mã lớp</TabButton>
-                            <TabButton active={activeTab === 'phong'} onClick={() => setActiveTab('phong')} icon={<IconMapPin size={18}/>}>Phòng</TabButton>
-                            <TabButton active={activeTab === 'giaovien'} onClick={() => setActiveTab('giaovien')} icon={<IconUser size={18}/>}>Giáo viên</TabButton>
-                        </div>
-
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-green-50 flex flex-col md:flex-row gap-3 mb-6">
-                            <div className="relative flex-1">
-                                <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-400 w-5 h-5" />
-                                <input 
-                                    type="text" 
-                                    list="search-suggestions"
-                                    value={searchTerm}
-                                    onChange={handleSearchChange}
-                                    placeholder={`Tìm kiếm ${activeTab}...`}
-                                    className="w-full pl-10 pr-10 py-2.5 bg-green-50 border-none rounded-xl focus:ring-2 focus:ring-green-400 text-green-800 placeholder-green-400 outline-none transition"
-                                />
-                                {searchTerm && (
-                                    <button onClick={clearSearch} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 hover:text-green-700">
-                                        <IconRefreshCw className="w-4 h-4" />
-                                    </button>
-                                )}
-                                <datalist id="search-suggestions">
-                                    {getActiveList().map((item, idx) => <option key={idx} value={item} />)}
-                                </datalist>
-                            </div>
-
-                            <div className="flex-1">
-                                <select 
-                                    value={selectedItem}
-                                    onChange={(e) => setSelectedItem(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-green-50 border-none rounded-xl focus:ring-2 focus:ring-green-400 text-green-800 outline-none cursor-pointer transition"
-                                >
-                                    {getActiveList().map((item, idx) => (
-                                        <option key={idx} value={item}>{item}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end mb-4">
-                            <button 
-                                onClick={exportToImage}
-                                disabled={isExporting}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-medium transition shadow-sm disabled:opacity-70"
-                            >
-                                {isExporting ? <IconRefreshCw className="w-4 h-4 animate-spin" /> : <IconImage className="w-4 h-4" />}
-                                Xuất làm hình nền
-                            </button>
-                        </div>
-
-                        <div 
-                            ref={wallpaperRef} 
-                            className="bg-gradient-to-b from-[#e8fbf0] to-[#f4fcf6] p-5 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white relative overflow-hidden"
-                            style={{ minHeight: '500px' }}
-                        >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 pointer-events-none"></div>
+                <ThemeContext.Provider value={t}>
+                    <div className={`min-h-screen ${t.appBg} ${t.textDark} font-sans pb-12 ${t.selection} transition-colors duration-300`}>
+                        {/* Dynamic Styles for Custom Scrollbar & Animations */}
+                        <style>{`
+                            .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                            .custom-scrollbar::-webkit-scrollbar-track { background: ${t.scrollbarTrack}; border-radius: 10px; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb { background: ${t.scrollbarThumb}; border-radius: 10px; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: ${t.scrollbarThumbHover}; }
+                            .scrollbar-hide::-webkit-scrollbar { display: none; }
+                            .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
                             
-                            <div className="text-center mb-6 relative z-10">
-                                <h2 className="text-2xl font-bold text-green-800">THỜI KHÓA BIỂU</h2>
-                                <div className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-semibold mt-2">
-                                    Áp dụng 04/05/2026
+                            @keyframes slideUpFade {
+                                from { opacity: 0; transform: translateY(20px); }
+                                to { opacity: 1; transform: translateY(0); }
+                            }
+                            .animate-slide-up { animation: slideUpFade 0.4s ease-out forwards; }
+                            
+                            @keyframes zoomIn {
+                                from { opacity: 0; transform: scale(0.95); }
+                                to { opacity: 1; transform: scale(1); }
+                            }
+                            .animate-zoom-in { animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+                        `}</style>
+
+                        <header className={`bg-white sticky top-0 z-30 shadow-sm border-b ${t.borderMid} transition-colors duration-300`}>
+                            <div className="max-w-md md:max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+                                <div>
+                                    <h1 className={`text-xl md:text-2xl font-bold ${t.textMain} flex items-center gap-2`}>
+                                        <div className={`p-1.5 rounded-lg ${t.bgLight} ${t.textPrimary}`}>
+                                            <IconCalendar className={`w-5 h-5 md:w-6 md:h-6`} />
+                                        </div>
+                                        TKB Tự Chọn
+                                    </h1>
+                                    <p className={`text-xs md:text-sm ${t.textPrimary} font-medium mt-0.5`}>Áp dụng từ ngày 4/5/2026</p>
+                                </div>
+                                <div className="flex items-center gap-2 md:gap-3">
+                                    {/* Theme Picker */}
+                                    <div className={`hidden sm:flex items-center gap-1.5 p-1 bg-white rounded-full border ${t.borderMid} shadow-inner`}>
+                                        {Object.keys(THEMES).map(key => (
+                                            <button
+                                                key={key}
+                                                onClick={() => setCurrentThemeKey(key)}
+                                                className={`w-5 h-5 rounded-full transition-all duration-200 ${currentThemeKey === key ? 'scale-125 ring-2 ring-offset-1 ring-gray-300' : 'hover:scale-110 opacity-70 hover:opacity-100'}`}
+                                                style={{ backgroundColor: THEMES[key].colorHex }}
+                                                title={THEMES[key].name}
+                                            />
+                                        ))}
+                                    </div>
+                                    <a 
+                                        href="https://tkbnkhoahung.github.io/tkbnk2526hs/" 
+                                        className={`p-2.5 ${t.bgLight} ${t.hoverBgLight} rounded-full ${t.textHighlight} transition shadow-sm border ${t.borderLight}`}
+                                        title="Về Trang Chủ"
+                                    >
+                                        <IconHome className="w-5 h-5" />
+                                    </a>
+                                </div>
+                            </div>
+                            {/* Mobile Theme Picker */}
+                            <div className={`sm:hidden flex justify-center gap-4 py-2.5 bg-white border-t ${t.borderLight}`}>
+                                {Object.keys(THEMES).map(key => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setCurrentThemeKey(key)}
+                                        className={`w-6 h-6 rounded-full transition-all duration-200 ${currentThemeKey === key ? 'scale-125 ring-2 ring-offset-2 ring-gray-300 shadow-md' : 'opacity-70'}`}
+                                        style={{ backgroundColor: THEMES[key].colorHex }}
+                                    />
+                                ))}
+                            </div>
+                        </header>
+
+                        <main className="max-w-md md:max-w-3xl mx-auto px-4 mt-6">
+                            {/* Khối Thống Kê */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 animate-slide-up" style={{animationDelay: '0.1s', animationFillMode: 'both'}}>
+                                <StatCard icon={<IconUsers />} title="Học sinh" value={stats.hs} />
+                                <StatCard icon={<IconLayoutGrid />} title="Lớp" value={stats.lop} />
+                                <StatCard icon={<IconUser />} title="Giáo viên" value={stats.gv} />
+                                <StatCard icon={<IconMapPin />} title="Phòng" value={stats.phong} />
+                            </div>
+
+                            {/* Các Tab điều hướng */}
+                            <div className="flex overflow-x-auto pb-2 mb-4 gap-2 scrollbar-hide animate-slide-up" style={{animationDelay: '0.2s', animationFillMode: 'both'}}>
+                                <TabButton active={activeTab === 'hocsinh'} onClick={() => setActiveTab('hocsinh')} icon={<IconUsers size={18}/>}>Học sinh</TabButton>
+                                <TabButton active={activeTab === 'malop'} onClick={() => setActiveTab('malop')} icon={<IconBookOpen size={18}/>}>Mã lớp</TabButton>
+                                <TabButton active={activeTab === 'phong'} onClick={() => setActiveTab('phong')} icon={<IconMapPin size={18}/>}>Phòng</TabButton>
+                                <TabButton active={activeTab === 'giaovien'} onClick={() => setActiveTab('giaovien')} icon={<IconUser size={18}/>}>Giáo viên</TabButton>
+                            </div>
+
+                            {/* Khu vực Tìm Kiếm và Lựa Chọn */}
+                            <div className={`bg-white p-4 rounded-[1.5rem] shadow-sm border ${t.borderLight} flex flex-col gap-4 mb-6 transition-colors duration-300 animate-slide-up`} style={{animationDelay: '0.3s', animationFillMode: 'both'}}>
+                                <div className="relative">
+                                    <IconSearch className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${t.iconLight} w-5 h-5`} />
+                                    <input 
+                                        type="text" 
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder={`Tìm kiếm trong ${getActiveList().length} lựa chọn...`}
+                                        className={`w-full pl-11 pr-10 py-3 ${t.bgLight} border-none rounded-xl ${t.focusRing} focus:ring-2 ${t.textMain} placeholder-gray-400 outline-none transition`}
+                                    />
+                                    {searchTerm && (
+                                        <button onClick={() => setSearchTerm('')} className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${t.iconLight} hover:${t.textHighlight}`}>
+                                            <IconX className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="max-h-52 overflow-y-auto custom-scrollbar p-1">
+                                    {filteredOptions.length > 0 ? (
+                                        <div className="flex flex-wrap gap-2">
+                                            {filteredOptions.map((item, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => setSelectedItem(item)}
+                                                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 border
+                                                        ${selectedItem === item 
+                                                            ? `bg-gradient-to-r from-${t.colorHex} to-[${t.colorHex}] ${t.bgPrimary} ${t.textWhite} ${t.borderPrimary} shadow-md transform scale-[1.03]` 
+                                                            : `bg-white ${t.textHighlight} ${t.borderMid} ${t.hoverBgLight50} hover:${t.borderHighlight} hover:shadow-sm`
+                                                        }`}
+                                                >
+                                                    {item}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className={`text-center py-6 ${t.textLight} font-medium flex flex-col items-center gap-2`}>
+                                            <IconSearch className="w-8 h-8 opacity-50" />
+                                            Không tìm thấy lựa chọn nào phù hợp.
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            {selectedItem ? (
-                                <>
-                                    {activeTab === 'hocsinh' && <StudentView data={data} studentName={selectedItem} />}
-                                    {activeTab === 'malop' && <ClassCodeView data={data} classCode={selectedItem} />}
-                                    {activeTab === 'phong' && <RoomView data={data} roomCode={selectedItem} />}
-                                    {activeTab === 'giaovien' && <TeacherView data={data} teacherName={selectedItem} />}
-                                </>
-                            ) : (
-                                <div className="text-center text-green-500 py-10">
-                                    Vui lòng chọn thông tin để xem
-                                </div>
-                            )}
-                        </div>
+                            <div className="flex justify-end mb-4 animate-slide-up" style={{animationDelay: '0.4s', animationFillMode: 'both'}}>
+                                <button 
+                                    onClick={exportToImage}
+                                    disabled={isExporting || !selectedItem}
+                                    className={`flex items-center gap-2 px-5 py-2.5 ${t.bgPrimary} ${t.hoverPrimary} text-white rounded-xl text-sm font-medium transition shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+                                >
+                                    {isExporting ? <IconRefreshCw className="w-4 h-4 animate-spin" /> : <IconImage className="w-4 h-4" />}
+                                    Xuất Ảnh Nền
+                                </button>
+                            </div>
 
-                        <div className="mt-12 text-center">
-                            <button 
-                                onClick={exportToCSV}
-                                className="inline-flex items-center gap-2 px-5 py-3 bg-white text-green-700 border border-green-200 hover:border-green-300 hover:bg-green-50 rounded-xl font-medium transition shadow-sm"
+                            {/* Khu vực Render Canvas - Có Key để kích hoạt lại Animation khi chọn item mới */}
+                            <div 
+                                ref={wallpaperRef} 
+                                className={`bg-gradient-to-br ${t.gradientFrom} ${t.gradientTo} p-5 md:p-8 rounded-[2rem] shadow-lg border border-white relative overflow-hidden transition-colors duration-500`}
+                                style={{ minHeight: '500px' }}
                             >
-                                <IconDownload className="w-5 h-5" />
-                                Tải Toàn Bộ Dữ Liệu (Excel/CSV)
-                            </button>
-                        </div>
-                    </main>
-                </div>
+                                {/* Decorative elements */}
+                                <div className={`absolute top-0 right-0 w-48 h-48 ${t.bgMid} rounded-full blur-[3rem] opacity-60 -mr-16 -mt-16 pointer-events-none transition-colors duration-500`}></div>
+                                <div className={`absolute bottom-0 left-0 w-32 h-32 ${t.bgPrimaryLight} rounded-full blur-[3rem] opacity-20 -ml-10 -mb-10 pointer-events-none transition-colors duration-500`}></div>
+                                
+                                <div className="text-center mb-8 relative z-10 animate-zoom-in">
+                                    <h2 className={`text-3xl font-extrabold ${t.textMain} tracking-tight uppercase`}>THỜI KHÓA BIỂU</h2>
+                                    <div className={`inline-flex items-center gap-1.5 px-4 py-1.5 ${t.bgLight} ${t.textHighlight} text-xs md:text-sm rounded-full font-semibold mt-3 shadow-sm border border-white`}>
+                                        <IconCalendar size={14} />
+                                        Áp dụng 04/05/2026
+                                    </div>
+                                </div>
+
+                                <div key={selectedItem + activeTab} className="relative z-10 animate-slide-up">
+                                    {selectedItem ? (
+                                        <>
+                                            {activeTab === 'hocsinh' && <StudentView data={data} studentName={selectedItem} />}
+                                            {activeTab === 'malop' && <ClassCodeView data={data} classCode={selectedItem} />}
+                                            {activeTab === 'phong' && <RoomView data={data} roomCode={selectedItem} />}
+                                            {activeTab === 'giaovien' && <TeacherView data={data} teacherName={selectedItem} />}
+                                        </>
+                                    ) : (
+                                        <EmptyState />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="mt-12 text-center pb-8 animate-slide-up" style={{animationDelay: '0.5s', animationFillMode: 'both'}}>
+                                <button 
+                                    onClick={exportToCSV}
+                                    className={`inline-flex items-center gap-2 px-6 py-3 bg-white ${t.textHighlight} border-2 ${t.borderHighlight} hover:border-[${t.colorHex}] ${t.hoverBgLight} rounded-2xl font-bold transition shadow-sm hover:shadow-md`}
+                                >
+                                    <IconDownload className="w-5 h-5" />
+                                    Tải File Excel / CSV
+                                </button>
+                            </div>
+                        </main>
+                    </div>
+                </ThemeContext.Provider>
             );
         }
 
         // ================= UI COMPONENTS =================
-        const StatCard = ({ icon, title, value }) => (
-            <div className="bg-white p-3 rounded-2xl shadow-sm border border-green-50 flex flex-col items-center text-center justify-center">
-                <div className="text-green-500 mb-1">{icon}</div>
-                <div className="text-xl font-bold text-green-800">{value}</div>
-                <div className="text-[10px] uppercase font-bold tracking-wider text-green-400">{title}</div>
-            </div>
-        );
-
-        const TabButton = ({ active, onClick, children, icon }) => (
-            <button 
-                onClick={onClick}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition whitespace-nowrap
-                ${active ? 'bg-green-600 text-white shadow-md' : 'bg-white text-green-600 hover:bg-green-100 shadow-sm border border-green-50'}`}
-            >
-                {icon}
-                {children}
-            </button>
-        );
-
-        const DetailRow = ({ icon, label, value, highlight }) => (
-            <div className="flex items-start gap-3 py-2 border-b border-green-50 last:border-0">
-                <div className="text-green-400 mt-0.5">{icon}</div>
-                <div>
-                    <div className="text-xs text-green-500 mb-0.5">{label}</div>
-                    <div className={`font-semibold ${highlight ? 'text-green-700 text-lg' : 'text-green-800'}`}>{value}</div>
+        const StatCard = ({ icon, title, value }) => {
+            const t = useContext(ThemeContext);
+            return (
+                <div className={`relative overflow-hidden bg-gradient-to-br ${t.gradientCard} p-4 rounded-2xl shadow-sm border ${t.borderLight} flex flex-col items-start transition-all duration-300 hover:shadow-md`}>
+                    <div className={`absolute -right-3 -bottom-3 ${t.iconLight} opacity-10 transform scale-150`}>
+                        {React.cloneElement(icon, { size: 64 })}
+                    </div>
+                    <div className={`${t.textPrimary} mb-2 bg-white p-2 rounded-xl shadow-sm`}>{icon}</div>
+                    <div className={`text-2xl font-black ${t.textMain}`}>{value}</div>
+                    <div className={`text-[10px] sm:text-xs uppercase font-bold tracking-wider ${t.textLight} mt-1`}>{title}</div>
                 </div>
-            </div>
-        );
+            );
+        };
 
-        const ScheduleCard = ({ title, mon, gv, maLop, phong, isRoomView = false, isTeacherView = false }) => (
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-green-400"></div>
-                <h4 className="text-sm font-bold text-green-500 mb-3 uppercase tracking-wide">{title}</h4>
-                
-                <div className="space-y-1">
-                    {!isTeacherView && mon && <DetailRow icon={<IconBookOpen size={16}/>} label="Môn Học" value={mon} highlight />}
-                    {!isTeacherView && isRoomView && <DetailRow icon={<IconUser size={16}/>} label="Giáo Viên" value={gv} />}
-                    {!isRoomView && !isTeacherView && <DetailRow icon={<IconUser size={16}/>} label="Giáo Viên" value={gv} />}
-                    {isTeacherView && <DetailRow icon={<IconBookOpen size={16}/>} label="Môn Học" value={mon} highlight />}
-                    
-                    <DetailRow icon={<IconLayoutGrid size={16}/>} label="Mã Lớp" value={maLop} />
-                    {!isRoomView && <DetailRow icon={<IconMapPin size={16}/>} label="Phòng Học" value={phong} />}
+        const TabButton = ({ active, onClick, children, icon }) => {
+            const t = useContext(ThemeContext);
+            return (
+                <button 
+                    onClick={onClick}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 whitespace-nowrap border-2
+                    ${active ? `${t.bgPrimary} ${t.borderPrimary} text-white shadow-md transform -translate-y-0.5` : `bg-white ${t.textPrimary} ${t.borderLight} ${t.hoverBgLight} shadow-sm hover:border-${t.colorHex}`}`}
+                >
+                    {icon}
+                    {children}
+                </button>
+            );
+        };
+
+        const EmptyState = () => {
+            const t = useContext(ThemeContext);
+            return (
+                <div className="flex flex-col items-center justify-center py-16 text-center animate-zoom-in">
+                    <div className={`w-32 h-32 ${t.bgMid} rounded-full flex items-center justify-center mb-6 shadow-inner`}>
+                        <IconMonitor size={64} className={`${t.textPrimary} opacity-70`} />
+                    </div>
+                    <h3 className={`text-xl font-bold ${t.textMain} mb-2`}>Chưa có thông tin nào được chọn</h3>
+                    <p className={`${t.textLight} max-w-sm`}>Hãy chọn một mục từ danh sách phía trên để xem chi tiết thời khóa biểu ngay tại đây.</p>
                 </div>
-            </div>
-        );
+            );
+        };
+
+        const Avatar = ({ name }) => {
+            const t = useContext(ThemeContext);
+            // Lấy chữ cái đầu tiên của từ cuối cùng trong tên
+            const initial = name ? name.split(' ').pop().charAt(0).toUpperCase() : '?';
+            return (
+                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${t.gradientFrom} to-white border ${t.borderHighlight} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                    <span className={`text-xs font-bold ${t.textPrimary}`}>{initial}</span>
+                </div>
+            );
+        }
+
+        // THIẾT KẾ LẠI SCHEDULE CARD DẠNG TIMELINE/TICKET
+        const ScheduleCardTimeline = ({ title, mon, gv, maLop, phong, isRoomView = false, isTeacherView = false }) => {
+            const t = useContext(ThemeContext);
+            
+            return (
+                <div className={`bg-white rounded-2xl p-0 shadow-sm border ${t.borderMid} relative overflow-hidden transition-all duration-300 hover:shadow-md flex flex-col sm:flex-row group`}>
+                    {/* Phần thời gian bên trái (Cột hẹp) */}
+                    <div className={`sm:w-1/3 bg-gradient-to-b ${t.gradientCard} p-4 flex flex-col justify-center border-b sm:border-b-0 sm:border-r ${t.borderLight} relative`}>
+                        <div className={`absolute top-0 left-0 w-1 h-full ${t.bgPrimaryLight} group-hover:${t.bgPrimary} transition-colors`}></div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <IconClock size={16} className={t.iconMain} />
+                            <h4 className={`text-sm font-bold ${t.textPrimary} uppercase tracking-wider`}>{title}</h4>
+                        </div>
+                        <div className={`text-xs font-semibold ${t.textLight} pl-6`}>Thực hành/Lý thuyết</div>
+                    </div>
+
+                    {/* Phần chi tiết bên phải */}
+                    <div className="sm:w-2/3 p-4 flex flex-col gap-3 justify-center">
+                        {!isTeacherView && mon && (
+                            <div className="flex items-center gap-3">
+                                <div className={`p-1.5 ${t.bgLight} rounded-lg ${t.iconMain}`}><IconBookOpen size={16}/></div>
+                                <div>
+                                    <div className={`text-[10px] uppercase font-bold ${t.textLight} leading-none mb-1`}>Môn học</div>
+                                    <div className={`font-black text-lg ${t.textHighlight} leading-none`}>{mon}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {isTeacherView && mon && (
+                            <div className="flex items-center gap-3">
+                                <div className={`p-1.5 ${t.bgLight} rounded-lg ${t.iconMain}`}><IconBookOpen size={16}/></div>
+                                <div>
+                                    <div className={`text-[10px] uppercase font-bold ${t.textLight} leading-none mb-1`}>Môn dạy</div>
+                                    <div className={`font-black text-lg ${t.textHighlight} leading-none`}>{mon}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {!isRoomView && !isTeacherView && gv && (
+                            <div className="flex items-center gap-3">
+                                <div className={`p-1.5 ${t.bgLight} rounded-lg ${t.iconMain}`}><IconUser size={16}/></div>
+                                <div>
+                                    <div className={`text-[10px] uppercase font-bold ${t.textLight} leading-none mb-1`}>Giáo viên</div>
+                                    <div className={`font-bold ${t.textMain} leading-none`}>{gv}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {isRoomView && !isTeacherView && gv && (
+                            <div className="flex items-center gap-3">
+                                <div className={`p-1.5 ${t.bgLight} rounded-lg ${t.iconMain}`}><IconUser size={16}/></div>
+                                <div>
+                                    <div className={`text-[10px] uppercase font-bold ${t.textLight} leading-none mb-1`}>Giáo viên</div>
+                                    <div className={`font-bold ${t.textMain} leading-none`}>{gv}</div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex gap-4 pt-2 mt-1 border-t border-dashed border-gray-200">
+                            <div className="flex items-center gap-1.5">
+                                <IconLayoutGrid size={14} className={t.iconLight}/>
+                                <span className={`text-xs font-semibold ${t.textMain}`}>{maLop}</span>
+                            </div>
+                            {!isRoomView && (
+                                <div className="flex items-center gap-1.5">
+                                    <IconMapPin size={14} className={t.iconLight}/>
+                                    <span className={`text-xs font-semibold ${t.textMain}`}>{phong}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
         // ================= VIEW COMPONENTS =================
         const StudentView = ({ data, studentName }) => {
+            const t = useContext(ThemeContext);
             const studentInfo = data.find(r => r[1] === studentName);
             if (!studentInfo) return null;
 
             return (
-                <div className="space-y-4">
-                    <div className="bg-green-600 text-white p-5 rounded-2xl shadow-lg text-center relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
-                        <h3 className="text-xl font-bold mb-1">{studentInfo[1]}</h3>
-                        <p className="text-green-100 font-medium">Lớp sinh hoạt: {studentInfo[0]}</p>
+                <div className="space-y-6">
+                    <div className={`${t.bgPrimary} text-white p-6 rounded-[2rem] shadow-lg flex items-center gap-5 relative overflow-hidden`}>
+                        <div className="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+                        <div className={`w-16 h-16 bg-white/20 border-2 border-white/50 backdrop-blur-sm rounded-full flex items-center justify-center text-2xl font-bold shadow-inner`}>
+                            {studentInfo[1].split(' ').pop().charAt(0)}
+                        </div>
+                        <div>
+                            <div className="text-white/80 font-semibold text-sm uppercase tracking-wider mb-1">Học sinh</div>
+                            <h3 className="text-2xl sm:text-3xl font-black mb-1 leading-none">{studentInfo[1]}</h3>
+                            <p className="inline-block bg-black/20 px-3 py-1 rounded-full text-xs font-medium">Lớp sinh hoạt: {studentInfo[0]}</p>
+                        </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 gap-4 mt-4">
-                        <ScheduleCard 
-                            title="Tiết 1 - 2" 
-                            mon={studentInfo[2]} 
-                            gv={studentInfo[3]} 
-                            maLop={studentInfo[4]} 
-                            phong={studentInfo[5]} 
-                        />
-                        <ScheduleCard 
-                            title="Tiết 3 - 4" 
-                            mon={studentInfo[6]} 
-                            gv={studentInfo[7]} 
-                            maLop={studentInfo[8]} 
-                            phong={studentInfo[9]} 
-                        />
+                    <div className="grid grid-cols-1 gap-4">
+                        <ScheduleCardTimeline title="Tiết 1 - 2" mon={studentInfo[2]} gv={studentInfo[3]} maLop={studentInfo[4]} phong={studentInfo[5]} />
+                        <ScheduleCardTimeline title="Tiết 3 - 4" mon={studentInfo[6]} gv={studentInfo[7]} maLop={studentInfo[8]} phong={studentInfo[9]} />
                     </div>
                 </div>
             );
         };
 
         const ClassCodeView = ({ data, classCode }) => {
+            const t = useContext(ThemeContext);
             let classInfo = null;
             let students = [];
-            let isPeriod1 = true;
 
             data.forEach(r => {
                 if (r[4] === classCode) {
@@ -454,38 +632,61 @@
                 } else if (r[8] === classCode) {
                     if (!classInfo) classInfo = { mon: r[6], gv: r[7], phong: r[9], tiet: "Tiết 3 - 4" };
                     students.push({ ten: r[1], lop: r[0] });
-                    isPeriod1 = false;
                 }
             });
 
             if (!classInfo) return null;
 
             return (
-                <div className="space-y-4 relative z-10">
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-green-100">
-                        <div className="flex justify-between items-center border-b border-green-50 pb-3 mb-3">
-                            <h3 className="text-2xl font-bold text-green-800">{classCode}</h3>
-                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">{classInfo.tiet}</span>
+                <div className="space-y-6">
+                    <div className={`bg-white p-6 rounded-[2rem] shadow-sm border ${t.borderMid}`}>
+                        <div className={`flex justify-between items-center border-b ${t.borderLight} pb-4 mb-4`}>
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 ${t.bgPrimary} text-white rounded-xl shadow-md`}><IconLayoutGrid size={24}/></div>
+                                <h3 className={`text-3xl font-black ${t.textMain} tracking-tight`}>{classCode}</h3>
+                            </div>
+                            <span className={`${t.bgMid} ${t.textHighlight} px-4 py-1.5 rounded-full text-sm font-bold shadow-sm border border-white`}>{classInfo.tiet}</span>
                         </div>
-                        <div className="space-y-2">
-                            <DetailRow icon={<IconBookOpen size={18}/>} label="Môn Học" value={classInfo.mon} highlight />
-                            <DetailRow icon={<IconUser size={18}/>} label="Giáo Viên" value={classInfo.gv} />
-                            <DetailRow icon={<IconMapPin size={18}/>} label="Phòng" value={classInfo.phong} />
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className={`p-4 rounded-2xl ${t.bgLight} border ${t.borderLight} flex flex-col items-center text-center`}>
+                                <IconBookOpen className={`${t.textPrimary} mb-2`} size={20} />
+                                <span className={`text-[10px] uppercase font-bold ${t.textLight}`}>Môn Học</span>
+                                <span className={`font-bold ${t.textHighlight} text-lg leading-tight`}>{classInfo.mon}</span>
+                            </div>
+                            <div className={`p-4 rounded-2xl ${t.bgLight} border ${t.borderLight} flex flex-col items-center text-center`}>
+                                <IconUser className={`${t.textPrimary} mb-2`} size={20} />
+                                <span className={`text-[10px] uppercase font-bold ${t.textLight}`}>Giáo Viên</span>
+                                <span className={`font-bold ${t.textMain} text-sm mt-1 leading-tight`}>{classInfo.gv}</span>
+                            </div>
+                            <div className={`p-4 rounded-2xl ${t.bgLight} border ${t.borderLight} flex flex-col items-center text-center`}>
+                                <IconMapPin className={`${t.textPrimary} mb-2`} size={20} />
+                                <span className={`text-[10px] uppercase font-bold ${t.textLight}`}>Phòng</span>
+                                <span className={`font-bold ${t.textMain} text-lg leading-tight`}>{classInfo.phong}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-green-100">
-                        <div className="bg-green-50 p-3 border-b border-green-100 flex justify-between items-center">
-                            <h4 className="font-bold text-green-800 text-sm">Danh Sách Học Sinh</h4>
-                            <span className="text-xs font-semibold bg-white text-green-600 px-2 py-1 rounded-lg">Sĩ số: {students.length}</span>
+                    <div className={`bg-white rounded-[1.5rem] overflow-hidden shadow-sm border ${t.borderMid}`}>
+                        <div className={`bg-gradient-to-r ${t.gradientCard} p-4 border-b ${t.borderMid} flex justify-between items-center`}>
+                            <h4 className={`font-extrabold ${t.textMain} flex items-center gap-2`}>
+                                <IconUsers size={18} className={t.iconMain}/>
+                                DANH SÁCH HỌC SINH
+                            </h4>
+                            <span className={`text-xs font-black bg-white ${t.textPrimary} px-3 py-1.5 rounded-xl shadow-sm border ${t.borderLight}`}>Sĩ số: {students.length}</span>
                         </div>
-                        <div className="max-h-60 overflow-y-auto p-2 scrollbar-hide">
-                            {students.map((hs, idx) => (
-                                <div key={idx} className="flex justify-between py-2 px-3 border-b border-green-50 last:border-0 hover:bg-green-50/50 rounded-lg">
-                                    <span className="text-sm font-medium text-green-900">{idx + 1}. {hs.ten}</span>
-                                    <span className="text-xs text-green-500 font-medium">{hs.lop}</span>
-                                </div>
-                            ))}
+                        <div className="max-h-72 overflow-y-auto custom-scrollbar p-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {students.map((hs, idx) => (
+                                    <div key={idx} className={`flex items-center gap-3 py-2 px-3 border ${t.borderLight} ${t.hoverBgLight50} rounded-xl transition-colors`}>
+                                        <Avatar name={hs.ten} />
+                                        <div className="flex-1 min-w-0">
+                                            <div className={`text-sm font-bold ${t.textDark} truncate`}>{hs.ten}</div>
+                                            <div className={`text-[10px] ${t.textLight} font-semibold uppercase`}>Lớp: {hs.lop}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -493,6 +694,7 @@
         };
 
         const RoomView = ({ data, roomCode }) => {
+            const t = useContext(ThemeContext);
             let p1Info = null;
             let p1Count = 0;
             let p2Info = null;
@@ -510,36 +712,40 @@
             });
 
             return (
-                <div className="space-y-4">
-                    <div className="bg-green-800 text-white p-4 rounded-2xl shadow-lg flex items-center justify-center gap-3">
-                        <IconMapPin className="text-green-300" />
-                        <h3 className="text-2xl font-bold tracking-wider">{roomCode}</h3>
+                <div className="space-y-6">
+                    <div className={`bg-gradient-to-r ${t.bgPrimary} to-gray-800 text-white p-6 rounded-[2rem] shadow-lg flex flex-col items-center justify-center gap-2 relative overflow-hidden`}>
+                        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '20px 20px' }}></div>
+                        <IconMapPin size={32} className="text-white/80" />
+                        <div className="text-sm font-medium text-white/70 uppercase tracking-widest">Phòng học</div>
+                        <h3 className="text-4xl font-black tracking-wider drop-shadow-md">{roomCode}</h3>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 gap-5">
                         {p1Info ? (
                             <div className="relative">
-                                <ScheduleCard title="Tiết 1 - 2" mon={p1Info.mon} gv={p1Info.gv} maLop={p1Info.maLop} isRoomView />
-                                <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-lg">
-                                    {p1Count} Học sinh
+                                <ScheduleCardTimeline title="Tiết 1 - 2" mon={p1Info.mon} gv={p1Info.gv} maLop={p1Info.maLop} isRoomView />
+                                <div className={`absolute -top-3 -right-2 ${t.bgPrimary} text-white shadow-md text-xs font-bold px-3 py-1 rounded-full border-2 border-white z-10`}>
+                                    {p1Count} HS
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white/50 border border-dashed border-green-200 p-4 rounded-2xl text-center text-green-400 text-sm">
-                                Phòng trống Tiết 1 - 2
+                            <div className={`bg-white/60 border-2 border-dashed ${t.borderDashed} p-6 rounded-2xl flex flex-col items-center justify-center text-center ${t.iconLight}`}>
+                                <IconClock size={24} className="mb-2 opacity-50"/>
+                                <span className="font-semibold">Phòng trống Tiết 1 - 2</span>
                             </div>
                         )}
 
                         {p2Info ? (
                             <div className="relative">
-                                <ScheduleCard title="Tiết 3 - 4" mon={p2Info.mon} gv={p2Info.gv} maLop={p2Info.maLop} isRoomView />
-                                <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-lg">
-                                    {p2Count} Học sinh
+                                <ScheduleCardTimeline title="Tiết 3 - 4" mon={p2Info.mon} gv={p2Info.gv} maLop={p2Info.maLop} isRoomView />
+                                <div className={`absolute -top-3 -right-2 ${t.bgPrimary} text-white shadow-md text-xs font-bold px-3 py-1 rounded-full border-2 border-white z-10`}>
+                                    {p2Count} HS
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white/50 border border-dashed border-green-200 p-4 rounded-2xl text-center text-green-400 text-sm">
-                                Phòng trống Tiết 3 - 4
+                            <div className={`bg-white/60 border-2 border-dashed ${t.borderDashed} p-6 rounded-2xl flex flex-col items-center justify-center text-center ${t.iconLight}`}>
+                                <IconClock size={24} className="mb-2 opacity-50"/>
+                                <span className="font-semibold">Phòng trống Tiết 3 - 4</span>
                             </div>
                         )}
                     </div>
@@ -548,6 +754,7 @@
         };
 
         const TeacherView = ({ data, teacherName }) => {
+            const t = useContext(ThemeContext);
             let p1Info = null;
             let p2Info = null;
             let studentsP1 = [];
@@ -556,48 +763,84 @@
             data.forEach(r => {
                 if (r[3] === teacherName) {
                     if (!p1Info) p1Info = { mon: r[2], maLop: r[4], phong: r[5] };
-                    studentsP1.push(r[1]);
+                    studentsP1.push({ ten: r[1], lop: r[0] });
                 }
                 if (r[7] === teacherName) {
                     if (!p2Info) p2Info = { mon: r[6], maLop: r[8], phong: r[9] };
-                    studentsP2.push(r[1]);
+                    studentsP2.push({ ten: r[1], lop: r[0] });
                 }
             });
 
             return (
-                <div className="space-y-4">
-                    <div className="bg-white border-2 border-green-100 p-4 rounded-2xl shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                            <IconUser size={24} />
+                <div className="space-y-6">
+                    <div className={`bg-white border-2 ${t.borderMid} p-5 rounded-[2rem] shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left`}>
+                        <div className={`w-16 h-16 ${t.bgLight} rounded-full flex items-center justify-center ${t.iconMain} shadow-inner flex-shrink-0`}>
+                            <IconUser size={32} />
                         </div>
-                        <div>
-                            <div className="text-xs font-bold text-green-400 uppercase">Giáo Viên</div>
-                            <h3 className="text-xl font-bold text-green-800">{teacherName}</h3>
+                        <div className="flex flex-col justify-center h-full pt-1">
+                            <div className={`text-xs font-bold ${t.iconLight} uppercase tracking-wider mb-1`}>Giáo Viên Phụ Trách</div>
+                            <h3 className={`text-2xl font-black ${t.textMain} leading-tight`}>{teacherName}</h3>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 gap-6">
                         {p1Info && (
-                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100">
-                                <h4 className="text-sm font-bold text-green-500 mb-3 border-b border-green-50 pb-2">TIẾT 1 - 2</h4>
-                                <div className="grid grid-cols-2 gap-2 mb-3">
-                                    <DetailRow icon={<IconBookOpen size={14}/>} label="Môn" value={p1Info.mon} />
-                                    <DetailRow icon={<IconLayoutGrid size={14}/>} label="Mã Lớp" value={p1Info.maLop} />
-                                    <DetailRow icon={<IconMapPin size={14}/>} label="Phòng" value={p1Info.phong} />
-                                    <DetailRow icon={<IconUsers size={14}/>} label="Sĩ số" value={studentsP1.length} />
-                                </div>
+                            <div className={`bg-white rounded-[1.5rem] shadow-sm border ${t.borderMid} overflow-hidden`}>
+                                <ScheduleCardTimeline title="Tiết 1 - 2" mon={p1Info.mon} maLop={p1Info.maLop} phong={p1Info.phong} isTeacherView />
+                                
+                                {studentsP1.length > 0 && (
+                                    <div className={`bg-gray-50/50 border-t ${t.borderLight} p-4`}>
+                                        <div className={`flex justify-between items-center mb-3`}>
+                                            <span className={`text-xs font-extrabold ${t.textPrimary} flex items-center gap-2`}>
+                                                <IconUsers size={14}/>
+                                                HỌC SINH T1-2 ({studentsP1.length})
+                                            </span>
+                                        </div>
+                                        <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-2">
+                                                {studentsP1.map((hs, idx) => (
+                                                    <div key={idx} className={`flex items-center gap-3 py-1.5 px-2 bg-white border ${t.borderLight} rounded-lg shadow-sm hover:border-${t.colorHex} transition-colors`}>
+                                                        <Avatar name={hs.ten} />
+                                                        <div className="min-w-0">
+                                                            <div className={`text-[13px] font-bold ${t.textDark} truncate`}>{hs.ten}</div>
+                                                            <div className={`text-[9px] ${t.textLight} font-bold uppercase`}>{hs.lop}</div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {p2Info && (
-                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-green-100">
-                                <h4 className="text-sm font-bold text-green-500 mb-3 border-b border-green-50 pb-2">TIẾT 3 - 4</h4>
-                                <div className="grid grid-cols-2 gap-2 mb-3">
-                                    <DetailRow icon={<IconBookOpen size={14}/>} label="Môn" value={p2Info.mon} />
-                                    <DetailRow icon={<IconLayoutGrid size={14}/>} label="Mã Lớp" value={p2Info.maLop} />
-                                    <DetailRow icon={<IconMapPin size={14}/>} label="Phòng" value={p2Info.phong} />
-                                    <DetailRow icon={<IconUsers size={14}/>} label="Sĩ số" value={studentsP2.length} />
-                                </div>
+                            <div className={`bg-white rounded-[1.5rem] shadow-sm border ${t.borderMid} overflow-hidden`}>
+                                <ScheduleCardTimeline title="Tiết 3 - 4" mon={p2Info.mon} maLop={p2Info.maLop} phong={p2Info.phong} isTeacherView />
+                                
+                                {studentsP2.length > 0 && (
+                                    <div className={`bg-gray-50/50 border-t ${t.borderLight} p-4`}>
+                                        <div className={`flex justify-between items-center mb-3`}>
+                                            <span className={`text-xs font-extrabold ${t.textPrimary} flex items-center gap-2`}>
+                                                <IconUsers size={14}/>
+                                                HỌC SINH T3-4 ({studentsP2.length})
+                                            </span>
+                                        </div>
+                                        <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pr-2">
+                                                {studentsP2.map((hs, idx) => (
+                                                    <div key={idx} className={`flex items-center gap-3 py-1.5 px-2 bg-white border ${t.borderLight} rounded-lg shadow-sm hover:border-${t.colorHex} transition-colors`}>
+                                                        <Avatar name={hs.ten} />
+                                                        <div className="min-w-0">
+                                                            <div className={`text-[13px] font-bold ${t.textDark} truncate`}>{hs.ten}</div>
+                                                            <div className={`text-[9px] ${t.textLight} font-bold uppercase`}>{hs.lop}</div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
